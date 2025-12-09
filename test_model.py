@@ -1,5 +1,5 @@
 import unittest
-from outra import Scelta, ScelteCollection, ScelteIterator
+from model import Scelta, ScelteCollection, ScelteIterator
 
 class TestScelta(unittest.TestCase):
     """
