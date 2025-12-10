@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from typing import Any
 from dataclasses import dataclass
+import json
 
 @dataclass
 class Scelta:
@@ -71,3 +72,27 @@ class ScelteCollection(Iterable):
     def add_scelte(self, scelte: dict[Scelta]) -> None:
         self._collection.update(scelte)
 
+
+# Singleton FileManager
+
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls):
+        if cls not in cls._instances:
+            instance = super().__call__()
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+class FileManager(metaclass=SingletonMeta):
+    def loadFile(self, fileName: str):
+        try:
+            with open(fileName, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                scelteInfo = data.get("nodes", {})
+                charactersInfo = data.get("characters", {})
+            return scelteInfo, charactersInfo
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Error: {fileName} file not found.")
+        except json.JSONDecodeError:
+            raise
