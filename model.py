@@ -96,3 +96,36 @@ class FileManager(metaclass=SingletonMeta):
             raise FileNotFoundError(f"Error: {fileName} file not found.")
         except json.JSONDecodeError:
             raise
+
+# Character: rappresenta un personaggio del gioco
+
+class Character():
+    def __init__(self, id: int, nickname: str = None, abilities: list = []):
+        self.id = id
+        if nickname: self.nickname = nickname
+        else:        self.nickname = f"Player {id}"
+        self.abilities = abilities
+    
+    def updateAbilities(self, newAbilities: list):
+        for ability in newAbilities:
+            if ability not in self.abilities:
+                self.abilities = self.abilities + newAbilities
+
+
+# GameSession: rappresenta lo stato della partita in corso
+
+class GameSession():
+    def __init__(self, scelteCollection: dict[Scelta],characters: list[Character], currentPlayerId: int = 0, currentSceltaId: str = "0"):
+        self.characters = characters
+        self.currentPlayerId = currentPlayerId
+        self.currentSceltaId = currentSceltaId
+        self.scelteCollection = scelteCollection
+    
+    def getCurrentPlayer(self) -> Character:
+        return self.characters[self.currentPlayerId]
+    
+    def switchTurn(self):
+        self.currentPlayerId = (self.currentPlayerId + 1) % len(self.characters)
+    
+    def updateCurrentScelta(self, newSceltaId):
+        self.currentSceltaId = newSceltaId
