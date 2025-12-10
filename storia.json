@@ -1,0 +1,182 @@
+{
+    "characters": {
+        "0": {
+            "nickname": "Donald J. Trump",
+            "abilities": ["money", "fake_news", "hair_spray"]
+        },
+        "1": {
+            "nickname": "Patty the Arancina",
+            "abilities": ["grease", "heat", "ragu_explosion"]
+        }
+    },
+    "nodes": {
+        "0": {
+            "text": "You wake up in a neon-lit IKEA. An alien with a Swedish accent points a laser at you. 'ASSEMBLE OR DIE,' he says.",
+            "leftText": "BUILD A WALL (using bookshelves)",
+            "rightText": "ROLL AWAY (greasy escape)",
+            "leftObjects": ["wooden_plank"],
+            "rightObjects": ["speed_boost"],
+            "nextLeft": [
+                [["money"], "1_TRUMP_WALL"],
+                [["grease"], "1_ARANCINA_SLIP"],
+                [[], "FAIL_NO_SKILL"]
+            ],
+            "nextRight": [
+                [["heat"], "1_ARANCINA_ROCKET"],
+                [["hair_spray"], "1_TRUMP_JETPACK"],
+                [[], "FAIL_SLOW"]
+            ]
+        },
+        "1_TRUMP_WALL": {
+            "text": "Trump pays the alien to build the wall for him. It's tremendous. But now the path is blocked by a giant Meatball.",
+            "leftText": "EAT THE MEATBALL",
+            "rightText": "SUE THE MEATBALL",
+            "leftObjects": ["cholesterol"],
+            "rightObjects": ["lawsuit"],
+            "nextLeft": [
+                [["ragu_explosion"], "2_SAUCE_WAR"],
+                [["fake_news"], "FAIL_MEATBALL_TRUTH"],
+                [[], "FAIL_INDIGESTION"]
+            ],
+            "nextRight": [
+                [["money"], "2_COURT_CASE"],
+                [[], "FAIL_POOR"]
+            ]
+        },
+        "1_ARANCINA_SLIP": {
+            "text": "Patty the Arancina greases the floor. The alien slips! But wait, the next player is sliding uncontrollably towards a Meat Grinder!",
+            "leftText": "USE HAIR AS PARACHUTE",
+            "rightText": "HARDEN CRUST",
+            "leftObjects": ["toupee"],
+            "rightObjects": ["crunchy_armor"],
+            "nextLeft": [
+                [["hair_spray"], "2_HAIR_SAVIOUR"],
+                [[], "FAIL_BALD"]
+            ],
+            "nextRight": [
+                [["heat"], "2_DEEP_FRIED_SURVIVAL"],
+                [[], "FAIL_SQUISHED"]
+            ]
+        },
+        "1_ARANCINA_ROCKET": {
+            "text": "Patty heats up and shoots into the sky like a spicy comet! She lands in the lighting section. It's dark.",
+            "leftText": "TWEET 'LET THERE BE LIGHT'",
+            "rightText": "GLOW WITH RADIOACTIVE RICE",
+            "leftObjects": ["smartphone"],
+            "rightObjects": ["radiation"],
+            "nextLeft": [
+                [["fake_news"], "2_MEDIA_CIRCUS"],
+                [[], "FAIL_NO_WIFI"]
+            ],
+            "nextRight": [
+                [["heat"], "2_NEON_PARTY"],
+                [[], "FAIL_DARKNESS"]
+            ]
+        },
+        "1_TRUMP_JETPACK": {
+            "text": "Trump uses hair spray as propulsion. He crashes into the 'As Is' section. A Zombie Billy Bookcase attacks!",
+            "leftText": "THROW MONEY AT IT",
+            "rightText": "EXPLODE WITH FLAVOR",
+            "leftObjects": ["bribe"],
+            "rightObjects": ["saffron"],
+            "nextLeft": [
+                [["money"], "2_ZOMBIE_CAPITALISM"],
+                [[], "FAIL_ZOMBIE_EATS_YOU"]
+            ],
+            "nextRight": [
+                [["ragu_explosion"], "2_MESSY_VICTORY"],
+                [[], "FAIL_BLAND_TASTE"]
+            ]
+        },
+        "2_SAUCE_WAR": {
+            "text": "The Arancina explodes! Ragù is everywhere. The Meatball is offended by the superior sauce quality.",
+            "leftText": "Declare Sauce Independence",
+            "rightText": "Run to the Exit",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "WIN_SAUCE_KING"]],
+            "nextRight": [[[], "WIN_ESCAPED"]]
+        },
+        "2_COURT_CASE": {
+            "text": "The Judge is a Sofa. Trump argues that meatballs are unconstitutional. The Sofa agrees.",
+            "leftText": "Buy the Sofa",
+            "rightText": "Sit on the Sofa",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "WIN_IKEA_OWNER"]],
+            "nextRight": [[[], "WIN_COMFY"]]
+        },
+        "2_HAIR_SAVIOUR": {
+            "text": "Trump's hair expands into a golden parachute. You float gently over the grinder.",
+            "leftText": "Land gracefully",
+            "rightText": "Land on a liberal",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "WIN_FABULOUS"]],
+            "nextRight": [[[], "WIN_POLITICAL"]]
+        },
+        "2_DEEP_FRIED_SURVIVAL": {
+            "text": "The Arancina becomes so hard nothing can hurt her. She breaks the grinder gears.",
+            "leftText": "Roll out",
+            "rightText": "Stay as a statue",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "WIN_UNSTOPPABLE"]],
+            "nextRight": [[[], "FAIL_STATUE_FOREVER"]]
+        },
+        "FAIL_NO_SKILL": {
+            "text": "GAME OVER. You tried to build a wall but you are a ball of rice. The books fell on you.",
+            "leftText": "Restart",
+            "rightText": "Quit",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "0"]],
+            "nextRight": [[[], "EXIT"]]
+        },
+        "FAIL_SLOW": {
+            "text": "GAME OVER. Trump tried to run but his bone spurs acted up. The alien lasered him.",
+            "leftText": "Restart",
+            "rightText": "Quit",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "0"]],
+            "nextRight": [[[], "EXIT"]]
+        },
+        "FAIL_MEATBALL_TRUTH": {
+            "text": "GAME OVER. Trump called the Meatball 'Fake News', but the Meatball was very real. Squish.",
+            "leftText": "Restart",
+            "rightText": "Quit",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "0"]],
+            "nextRight": [[[], "EXIT"]]
+        },
+        "FAIL_BALD": {
+            "text": "GAME OVER. The Arancina tried to use hair spray, but she has no hair. She fell into the grinder.",
+            "leftText": "Restart",
+            "rightText": "Quit",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "0"]],
+            "nextRight": [[[], "EXIT"]]
+        },
+        "WIN_IKEA_OWNER": {
+            "text": "VICTORY! Trump bought the entire store. He renamed it TRUMP-KEA. They sell gold-plated meatballs now.",
+            "leftText": "Play Again",
+            "rightText": "Exit",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "0"]],
+            "nextRight": [[[], "EXIT"]]
+        },
+        "WIN_SAUCE_KING": {
+            "text": "VICTORY! Patty the Arancina is crowned Queen of the Food Court. Trump is her waiter.",
+            "leftText": "Play Again",
+            "rightText": "Exit",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "0"]],
+            "nextRight": [[[], "EXIT"]]
+        }
+    }
+}

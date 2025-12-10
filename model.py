@@ -8,12 +8,14 @@ import json
 @dataclass
 class Scelta:
     ''' Rappresenta una singola scelta '''
-    key:       str  # chiave univoca della scelta
-    nextRight: list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
-    nextLeft:  list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
-    text:      str  # testo della scelta
-    rightText: str  # testo del botone della scelta a destra
-    leftText:  str  # testo del botone della scelta a sinistra
+    key:          str  # chiave univoca della scelta
+    nextRight:    list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
+    nextLeft:     list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
+    text:         str  # testo della scelta
+    rightText:    str  # testo del botone della scelta a destra
+    leftText:     str  # testo del botone della scelta a sinistra
+    rightObjects: list[str]  # oggetti ottenuti scegliendo a destra
+    leftObjects:  list[str]  # oggetti ottenuti scegliendo a sinistra
     
 
 class ScelteIterator(Iterator):
@@ -28,7 +30,7 @@ class ScelteIterator(Iterator):
         self._position =   "0"
 
     def getLeft(self, objects: list[str]) -> Scelta:
-        '''Restituisce la scelta a sinistra'''
+        '''Restituisce la scelt a a sinistra'''
         options = self._collection.__getScelta__(self._position).nextLeft
         for option in options:
             required_objects, next_key = option
@@ -62,7 +64,7 @@ class ScelteCollection(Iterable):
     
     def __init__(self, collection: dict[Scelta]):
         self._collection = collection or {}
-
+ 
     def __getScelta__(self, key: str) -> Scelta:
         return self._collection[key]
     
