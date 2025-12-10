@@ -3,16 +3,19 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from typing import Any
 from dataclasses import dataclass
+import json
 
 @dataclass
 class Scelta:
     ''' Rappresenta una singola scelta '''
-    key:       str  # chiave univoca della scelta
-    nextRight: list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
-    nextLeft:  list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
-    text:      str  # testo della scelta
-    rightText: str  # testo del botone della scelta a destra
-    leftText:  str  # testo del botone della scelta a sinistra
+    key:          str  # chiave univoca della scelta
+    nextRight:    list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
+    nextLeft:     list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
+    text:         str  # testo della scelta
+    rightText:    str  # testo del botone della scelta a destra
+    leftText:     str  # testo del botone della scelta a sinistra
+    rightObjects: list[str]  # oggetti ottenuti scegliendo a destra
+    leftObjects:  list[str]  # oggetti ottenuti scegliendo a sinistra
     
 
 class ScelteIterator(Iterator):
@@ -27,7 +30,7 @@ class ScelteIterator(Iterator):
         self._position =   "0"
 
     def getLeft(self, objects: list[str]) -> Scelta:
-        '''Restituisce la scelta a sinistra'''
+        '''Restituisce la scelt a a sinistra'''
         options = self._collection.__getScelta__(self._position).nextLeft
         for option in options:
             required_objects, next_key = option
@@ -61,7 +64,7 @@ class ScelteCollection(Iterable):
     
     def __init__(self, collection: dict[Scelta]):
         self._collection = collection or {}
-
+ 
     def __getScelta__(self, key: str) -> Scelta:
         return self._collection[key]
     
@@ -71,3 +74,60 @@ class ScelteCollection(Iterable):
     def add_scelte(self, scelte: dict[Scelta]) -> None:
         self._collection.update(scelte)
 
+
+# Singleton FileManager
+
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls):
+        if cls not in cls._instances:
+            instance = super().__call__()
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+class FileManager(metaclass=SingletonMeta):
+    def loadFile(self, fileName: str):
+        try:
+            with open(fileName, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                scelteInfo = data.get("nodes", {})
+                charactersInfo = data.get("characters", {})
+            return scelteInfo, charactersInfo
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Error: {fileName} file not found.")
+        except json.JSONDecodeError:
+            raise
+
+# Character: rappresenta un personaggio del gioco
+
+class Character():
+    def __init__(self, id: int, nickname: str = None, abilities: list = []):
+        self.id = id
+        if nickname: self.nickname = nickname
+        else:        self.nickname = f"Player {id}"
+        self.abilities = abilities
+    
+    def updateAbilities(self, newAbilities: list):
+        for ability in newAbilities:
+            if ability not in self.abilities:
+                self.abilities = self.abilities + newAbilities
+
+
+# GameSession: rappresenta lo stato della partita in corso
+
+class GameSession():
+    def __init__(self, scelteCollection: dict[Scelta],characters: list[Character], currentPlayerId: int = 0, currentSceltaId: str = "0"):
+        self.characters = characters
+        self.currentPlayerId = currentPlayerId
+        self.currentSceltaId = currentSceltaId
+        self.scelteCollection = scelteCollection
+    
+    def getCurrentPlayer(self) -> Character:
+        return self.characters[self.currentPlayerId]
+    
+    def switchTurn(self):
+        self.currentPlayerId = (self.currentPlayerId + 1) % len(self.characters)
+    
+    def updateCurrentScelta(self, newSceltaId):
+        self.currentSceltaId = newSceltaId
