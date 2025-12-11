@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Come funziona il gioco?</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fafafc;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    .content {
+      max-width: 950px;
+      margin: auto;
+      padding: 2rem;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    h1, h2, h3, h4 {
+      color: #b90039;
+    }
+    .diagram {
+      margin: 2rem 0;
+      text-align: center;
+    }
+    code, pre.pseudo {
+      background: #f4f4f4;
+      border-radius: 3px;
+      padding: 2px 4px;
+      font-size: 1em;
+      margin: 1em 0;
+      white-space: pre-wrap;
+      color: #21243d;
+    }
+    ul, ol {
+      margin-left: 2rem;
+    }
+    .pattern {
+      margin: 1.5rem 0;
+      background: #e8ecfa;
+      border-left: 4px solid #4d60a0;
+      padding: 1rem 1.5rem;
+      border-radius: 6px;
+    }
+    .feature {
+      background: #eee9f0;
+      border-left: 4px solid #b90039;
+      padding: 1rem 1.5rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+<div class="content">
+<h1>Come funziona il gioco?</h1>
+
+<p>Questa applicazione è un gioco a scelta multipla a turni, strutturato secondo <strong>solidi pattern di progettazione</strong> tipici dell'ingegneria del software. Il giocatore attraversa una storia, prende decisioni e può ottenere oggetti/abilità che influenzano l'avanzamento. Il sistema è facilmente estensibile.</p>
+
+<h2>Architettura e principali classi</h2>
+<ul>
+  <li><b>MainController</b>: gestisce la logica principale del gioco, orchestrando sessione, file di salvataggio e interfaccia grafica.</li>
+  <li><b>GameSession</b>: mantiene lo stato della partita, incluso turno, personaggi e la posizione nella storia.</li>
+  <li><b>FileManager</b>: singleton che carica scenario e personaggi da file JSON.</li>
+  <li><b>GameView</b>: facade per la GUI, gestisce la visualizzazione e l'interazione con pygame.</li>
+  <li><b>ScelteCollection & ScelteIterator</b>: gestiscono la collezione di scelte e la logica di navigazione fra nodi della storia.</li>
+  <li><b>Character</b>: rappresenta un giocatore (o il personaggio controllato) e le sue abilità.</li>
+  <li><b>RenderObject, Text, Button, Image</b>: oggetti visuali per compositare la scena.</li>
+</ul>
+
+<div class="pattern">
+<h3>Design patterns utilizzati</h3>
+<ul>
+  <li><b>Iterator:</b> per esplorare la storia nodo per nodo, verificando condizioni e consentendo il flusso sequenziale o ramificato.</li>
+  <li><b>Singleton:</b> per la gestione centralizzata del caricamento dati (<code>FileManager</code>).</li>
+  <li><b>Composite:</b> per strutturare gerarchicamente gli oggetti renderizzabili nella UI.</li>
+  <li><b>Facade:</b> <code>GameView</code> offre un'interfaccia semplificata per la GUI.</li>
+</ul>
+</div>
+
+<h2>Funzionalità principali e flusso di gioco</h2>
+<p>Qui sotto sono descritte le funzionalità chiave. Ogni blocco è seguito da un <b>pseudocodice</b> per aiutare la comprensione.</p>
+
+<hr>
+<div class="feature">
+<h3>Inizializzazione e caricamento dati</h3>
+<p>All'avvio:<br>
+Il controller avvia la view, legge i dati degli scenari (<code>ScelteCollection</code>) e dei personaggi (<code>Character</code>) dal JSON tramite <code>FileManager</code>. Crea una nuova <code>GameSession</code>.</p>
+<pre class="pseudo">
+MainController.gameLoop()
+    view.initScreen()
+    readGameFile()
+    updateView()
+    running = True
+    clock = Clock()
+    while running:
+        handleEvents()
+        view.render()
+        clock.tick(60)
+</pre>
+<pre class="pseudo">
+MainController.readGameFile(nome_file)
+    scelteData, charactersData = FileManager.loadFile(nome_file)
+    scelteCollection = parseScelteData(scelteData)
+    characters = parseCharactersData(charactersData)
+    session = GameSession(scelteCollection, characters)
+    iterator = iter(scelteCollection)
+</pre>
+</div>
+
+<div class="feature">
+<h3>Gestione del turno e scelta</h3>
+<p>Ogni turno il giocatore vede le scelte disponibili. Se seleziona un'opzione, vengono controllati i requisiti (abilità/oggetti) e si aggiorna lo stato:</p>
+<pre class="pseudo">
+MainController.handleEvents()
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            running = False
+        if event.type == MOUSEBUTTONDOWN and session.currentSceltaId != "EXIT":
+            click_msgs = view.checkClick(event.pos)
+            scelta_corrente = session.scelteCollection.__getScelta__(session.currentSceltaId)
+            for msg in click_msgs:
+                if scelta_corrente.leftText in msg:
+                    nextScelta("left")
+                elif scelta_corrente.rightText in msg:
+                    nextScelta("right")
+</pre>
+
+<pre class="pseudo">
+MainController.nextScelta(direzione)
+    giocatore = session.getCurrentPlayer()
+    scelta_corrente = session.scelteCollection.__getScelta__(session.currentSceltaId)
+    iterator._position = session.currentSceltaId
+    if direzione == "left":
+        if scelta_corrente.leftObjects:
+            giocatore.updateAbilities(scelta_corrente.leftObjects)
+        next = iterator.getLeft(giocatore.abilities)
+    else if direzione == "right":
+        if scelta_corrente.rightObjects:
+            giocatore.updateAbilities(scelta_corrente.rightObjects)
+        next = iterator.getRight(giocatore.abilities)
+    if next.key == "EXIT":
+        running = False
+    else:
+        session.updateCurrentScelta(next.key)
+        session.switchTurn()
+        updateView()
+</pre>
+</div>
+
+<div class="feature">
+<h3>Aggiornamento della vista</h3>
+<p>Ogni azione aggiorna la schermata con la storia attuale, il giocatore corrente e i bottoni disponibili:</p>
+<pre class="pseudo">
+MainController.updateView()
+    Se sessione è None o session.currentSceltaId == "EXIT": return
+    scelta_corrente = session.scelteCollection.__getScelta__(session.currentSceltaId)
+    player = session.getCurrentPlayer()
+    view.root.children = []
+    storyText = Text(..., scelta_corrente.text)
+    playerInfo = Text(..., info su player)
+    Se scelta_corrente.leftText:
+        aggiungi bottone sinistra
+    Se scelta_corrente.rightText:
+        aggiungi bottone destra
+    view.linksToSubsystemObjects(oggetti_da_renderizzare)
+</pre>
+</div>
+
+<div class="feature">
+<h3>Le Classi principali: riassunto e pseudocodice</h3>
+<h4>MainController</h4>
+<pre class="pseudo">
+Classe MainController
+    fileManager: FileManager
+    view: GameView
+    session: GameSession
+    iterator: ScelteIterator
+    scelte: ScelteCollection
+
+    # Metodi principali:
+    - gameLoop()
+    - readGameFile()
+    - nextScelta(direzione)
+    - updateView()
+    - handleEvents()
+</pre>
+<h4>GameSession</h4>
+<pre class="pseudo">
+Classe GameSession
+    characters: list[Character]
+    currentPlayerId: int
+    currentSceltaId: str
+    scelteCollection: ScelteCollection
+    - getCurrentPlayer()
+    - switchTurn()
+    - updateCurrentScelta(id)
+</pre>
+<h4>ScelteCollection</h4>
+<pre class="pseudo">
+Classe ScelteCollection
+    _collection: dict[key, Scelta]
+    - __getScelta__(key): Scelta
+    - __iter__(): ScelteIterator
+</pre>
+<h4>ScelteIterator</h4>
+<pre class="pseudo">
+Classe ScelteIterator
+    _collection: ScelteCollection
+    _position: str
+    - getLeft(oggetti): Scelta
+    - getRight(oggetti): Scelta
+    - hasMore(): bool
+    - __next__(): Scelta
+</pre>
+<h4>Character</h4>
+<pre class="pseudo">
+Classe Character
+    id: int
+    nickname: str
+    abilities: list[str]
+    - updateAbilities(nuove): aggiorna la lista senza duplicati
+</pre>
+<h4>FileManager (Singleton)</h4>
+<pre class="pseudo">
+Classe FileManager (Singleton)
+    - loadFile(nome_file): (scelte, characters)
+</pre>
+<h4>GameView e oggetti grafici</h4>
+<pre class="pseudo">
+Classe GameView
+    screen: Screen
+    root: RenderObject (composite root)
+    - initScreen()
+    - linksToSubsystemObjects(listaOggetti)
+    - render()
+    - checkClick(posizione)
+
+Text, Button, Image: eredita da RenderObject
+</pre>
+</div>
+
+<div class="diagram">
+  <img src="class_diagram.drawio.png" alt="Diagramma delle classi" style="max-width:100%;border:1px solid #ccc;border-radius:5px;">
+  <p><small>Diagramma delle classi: relazioni chiave e pattern</small></p>
+</div>
+
+<h2>Esempio di flusso di gioco</h2>
+<pre>
+Turno di: Ezio | Abilità: ['Furtività']
+
+Ti trovi davanti a un castello.
+
+[Entrare dalla porta principale]    [Cercare un passaggio segreto]
+</pre>
+
+<h3>Come aggiungere nuove storie?</h3>
+<ol>
+  <li>Modifica il file <code>storia.json</code> seguendo la struttura di nodi (scelte) e personaggi.</li>
+  <li>Puedes usare condizioni per l'accesso alle scelte, premi ed effetti specifici.</li>
+  <li>Il sistema validerà automaticamente i dati all'avvio.</li>
+</ol>
+
+<hr>
+<p style="color:#555;text-align:center;">Progetto di Ingegneria del Software — Architettura con pattern: iteratore, composite, facade, singleton</p>
+</div>
+</body>
+</html>
