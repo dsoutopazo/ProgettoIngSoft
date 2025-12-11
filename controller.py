@@ -37,7 +37,6 @@ class MainController:
             characters.append(Character(char_id, nickname, abilities))
         return characters
 
-    # --- CORREZIONE: Assicurati che il nome del file sia corretto ---
     def readGameFile(self, fileName: str = "storia.json"):
         try:
             scelteData, charactersData = self.fileManager.loadFile(fileName)
@@ -107,7 +106,6 @@ class MainController:
             if next_scelta_obj:
                 print(f"Avanzando a: {next_scelta_obj.key}")
                 
-                # --- CORREZIONE: Gestione fine del gioco ---
                 if next_scelta_obj.key == "EXIT":
                     print("GAME OVER / VITTORIA - Chiusura gioco...")
                     self.running = False
