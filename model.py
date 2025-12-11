@@ -117,7 +117,7 @@ class Character():
 # GameSession: rappresenta lo stato della partita in corso
 
 class GameSession():
-    def __init__(self, scelteCollection: dict[Scelta],characters: list[Character], currentPlayerId: int = 0, currentSceltaId: str = "0"):
+    def __init__(self, scelteCollection: ScelteCollection,characters: list[Character], currentPlayerId: int = 0, currentSceltaId: str = "0"):
         self.characters = characters
         self.currentPlayerId = currentPlayerId
         self.currentSceltaId = currentSceltaId
