@@ -1,0 +1,13 @@
+{
+    "scelta_key": 1,
+    "characters": {
+        "0": {
+            "nickname": "P1 (The Avenger)",
+            "abilities": []
+        },
+        "1": {
+            "nickname": "P2 (The Agile)",
+            "abilities": []
+        }
+    }
+}
