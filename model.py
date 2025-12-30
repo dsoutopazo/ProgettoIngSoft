@@ -91,6 +91,8 @@ class FileManager(metaclass=SingletonMeta):
         try:
             with open(fileName, 'r', encoding='utf-8') as f:
                 data = json.load(f)
+                if "nodes" not in data or "characters" not in data:
+                    raise ValueError("Story file is missing required fields.")
                 scelteInfo = data.get("nodes", {})
                 charactersInfo = data.get("characters", {})
             return scelteInfo, charactersInfo
@@ -98,6 +100,19 @@ class FileManager(metaclass=SingletonMeta):
             raise FileNotFoundError(f"Error: {fileName} file not found.")
         except json.JSONDecodeError:
             raise
+
+    def loadSavedGameFile(self, fileName: str):
+        try:
+            with open(fileName, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if "scelta_key" not in data or "characters" not in data or "current_player_id" not in data:
+                    raise ValueError("Saved game file is missing required fields.")
+            return data.get("scelta_key"), data.get("characters"), data.get("current_player_id")
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Error: {fileName} file not found.")
+        except json.JSONDecodeError:
+            raise
+
 
 # Character: rappresenta un personaggio del gioco
 

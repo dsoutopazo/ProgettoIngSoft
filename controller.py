@@ -37,7 +37,7 @@ class MainController:
             characters.append(Character(char_id, nickname, abilities))
         return characters
 
-    def readGameFile(self, fileName: str = "storia.json"):
+    def readStoryFile(self, fileName: str = "storia.json"):
         try:
             scelteData, charactersData = self.fileManager.loadFile(fileName)
         except Exception as e:
@@ -52,6 +52,27 @@ class MainController:
 
         self.session = GameSession(scelteCollection, characters)
         self.iterator = iter(scelteCollection)
+    
+    def loadSavedGame(self, savedGameFile: str):
+        if not self.session:
+            return
+        
+        try:
+            sceltaKey, savedCharactersData, currentPlayerId = self.fileManager.loadSavedGameFile(savedGameFile)
+            self.session.currentSceltaId = sceltaKey
+            self.iterator._position = sceltaKey
+
+            for char_id_str, char_data in savedCharactersData.items():
+                char_id = int(char_id_str)
+                character = next((c for c in self.session.characters if c.id == char_id), None)
+
+                if character:
+                    character.abilities = char_data.get("abilities", [])
+            
+            self.session.currentPlayerId = currentPlayerId
+
+        except (FileNotFoundError, ValueError) as e:
+            print(f"Error loading game: {e}")
 
     def updateView(self):
         if not self.session:
