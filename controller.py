@@ -74,6 +74,27 @@ class MainController:
         except (FileNotFoundError, ValueError) as e:
             print(f"Error loading game: {e}")
 
+    def saveGame(self, saveFileName: str):
+        if not self.session:
+            return
+        
+        fileContent = {
+            "scelta_key": self.session.currentSceltaId,
+            "characters": {
+                str(character.id): {
+                    "nickname": character.nickname,
+                    "abilities": character.abilities
+                } for character in self.session.characters
+            },
+            "current_player_id": self.session.currentPlayerId
+        }
+
+        try:
+            self.fileManager.saveGameToFile(saveFileName, fileContent)
+            print(f"Game successfully saved to {saveFileName}.")
+        except IOError as e:
+            print(f"Error saving game: {e}")
+
     def updateView(self):
         if not self.session:
             return

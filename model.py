@@ -113,6 +113,14 @@ class FileManager(metaclass=SingletonMeta):
         except json.JSONDecodeError:
             raise
 
+    def saveGameToFile(self, fileName: str, fileContent: dict):
+        try:
+            with open(fileName, 'w', encoding='utf-8') as f:
+                json.dump(fileContent, f, indent=4)
+        except Exception as e:
+            raise IOError(f"Error saving game to {fileName}: {e}")
+        
+
 
 # Character: rappresenta un personaggio del gioco
 
