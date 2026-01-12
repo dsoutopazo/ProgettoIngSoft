@@ -1,0 +1,131 @@
+@startuml classes
+set namespaceSeparator none
+class "Button" as IngegneriaDelSoftware.view.Button {
+  click_sound : NoneType
+  font : Font
+  glow_speed : float
+  hover_sound : NoneType
+  icon : NoneType
+  icon_size : int
+  position
+  radius : int
+  rect
+  size
+  text : str
+  checkClick(pos)
+  render(surface)
+}
+class "Character" as IngegneriaDelSoftware.model.Character {
+  abilities : list
+  id : int
+  nickname : NoneType
+  updateAbilities(newAbilities: list)
+}
+class "FileManager" as IngegneriaDelSoftware.model.FileManager {
+  loadFile(fileName: str)
+}
+class "GameSession" as IngegneriaDelSoftware.model.GameSession {
+  characters : list[Character]
+  currentPlayerId : int
+  currentSceltaId : str
+  scelteCollection
+  getCurrentPlayer() -> Character
+  switchTurn()
+  updateCurrentScelta(newSceltaId)
+}
+class "GameView" as IngegneriaDelSoftware.view.GameView {
+  current_scene : str
+  menu_bg : NoneType
+  root
+  screen
+  checkClick(pos)
+  initScreen()
+  linksToSubsystemObjects(objects)
+  render()
+  setScene(scene_name)
+}
+class "Image" as IngegneriaDelSoftware.view.Image {
+  image
+  position
+  checkClick(pos)
+  render(surface)
+}
+class "MainController" as IngegneriaDelSoftware.controller.MainController {
+  fileManager
+  iterator : NoneType
+  menu_music_playing : bool
+  running : bool
+  session : NoneType
+  showing_endings_menu : bool
+  view
+  fadeout_menu_music(ms)
+  gameLoop()
+  getAllEndingsForLevel(level)
+  handleEvents()
+  loadEndings()
+  nextScelta(direction)
+  parseCharactersData(charactersData)
+  parseScelteData(sceltaData)
+  play_menu_music(volume)
+  readGameFile(fileName)
+  registerEnding(level, ending_title)
+  saveEndings(endings_data)
+  showEndingsMenu()
+  showLoadMenu()
+  showMainMenu()
+  updateView()
+}
+class "RenderObject" as IngegneriaDelSoftware.view.RenderObject {
+  children : list
+  display : bool
+  zLayer : int
+  addChildren(children_list)
+  checkClick(pos)
+  render(surface)
+}
+class "Scelta" as IngegneriaDelSoftware.model.Scelta {
+  ending : str
+  endingTitle : str
+  key : str
+  leftObjects : list[str]
+  leftText : str
+  level : int
+  nextLeft : list[tuple[list[str], str]]
+  nextRight : list[tuple[list[str], str]]
+  rightObjects : list[str]
+  rightText : str
+  text : str
+}
+class "ScelteCollection" as IngegneriaDelSoftware.model.ScelteCollection {
+  add_scelte(scelte: dict[Scelta]) -> None
+}
+class "ScelteIterator" as IngegneriaDelSoftware.model.ScelteIterator {
+  getLeft(objects: list[str]) -> Scelta
+  getRight(objects: list[str]) -> Scelta
+  hasMore() -> bool
+}
+class "Screen" as IngegneriaDelSoftware.view.Screen {
+  height : int
+  screen : NoneType
+  width : int
+  initScreen()
+}
+class "SingletonMeta" as IngegneriaDelSoftware.model.SingletonMeta {
+}
+class "Text" as IngegneriaDelSoftware.view.Text {
+  color : tuple
+  content
+  font : Font
+  max_width : NoneType
+  position
+  checkClick(pos)
+  render(surface)
+}
+IngegneriaDelSoftware.view.Button --|> IngegneriaDelSoftware.view.RenderObject
+IngegneriaDelSoftware.view.Image --|> IngegneriaDelSoftware.view.RenderObject
+IngegneriaDelSoftware.view.Text --|> IngegneriaDelSoftware.view.RenderObject
+IngegneriaDelSoftware.view.RenderObject --* IngegneriaDelSoftware.view.GameView : root
+IngegneriaDelSoftware.view.Screen --* IngegneriaDelSoftware.view.GameView : screen
+IngegneriaDelSoftware.model.ScelteCollection --o IngegneriaDelSoftware.model.GameSession : scelteCollection
+IngegneriaDelSoftware.model.ScelteCollection --o IngegneriaDelSoftware.model.ScelteIterator : _collection
+@enduml
