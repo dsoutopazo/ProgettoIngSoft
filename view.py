@@ -51,17 +51,59 @@ class RenderObject:
 # TEXT
 # =====================
 class Text(RenderObject):
-    def __init__(self, position, content, color=(255, 255, 255)):
+    def __init__(self, position, content, color=(255, 255, 255), max_width=None):
         super().__init__()
         self.position = position
         self.content = content
         self.color = color
+        self.max_width = max_width  # Maximum width in pixels for text wrapping
         pygame.font.init()
         self.font = pygame.font.SysFont("Arial", 26, bold=True)
 
+    def _wrap_text(self, text, font, max_width):
+        """Wrap text to fit within max_width, returning list of lines"""
+        if not max_width:
+            return [text]
+        
+        words = text.split(' ')
+        lines = []
+        current_line = []
+        
+        for word in words:
+            # Test if adding this word would exceed max_width
+            test_line = ' '.join(current_line + [word])
+            test_surface = font.render(test_line, True, self.color)
+            
+            if test_surface.get_width() <= max_width:
+                current_line.append(word)
+            else:
+                # Current line is full, start a new line
+                if current_line:
+                    lines.append(' '.join(current_line))
+                    current_line = [word]
+                else:
+                    # Word itself is too long, add it anyway (or could break it)
+                    lines.append(word)
+        
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        return lines if lines else [text]
+
     def render(self, surface):
-        text_surface = self.font.render(self.content, True, self.color)
-        surface.blit(text_surface, self.position)
+        if self.max_width:
+            # Render with word wrapping
+            lines = self._wrap_text(self.content, self.font, self.max_width)
+            y_offset = 0
+            for line in lines:
+                if line:  # Skip empty lines
+                    text_surface = self.font.render(line, True, self.color)
+                    surface.blit(text_surface, (self.position[0], self.position[1] + y_offset))
+                    y_offset += text_surface.get_height() + 2  # Small spacing between lines
+        else:
+            # Render without wrapping (original behavior)
+            text_surface = self.font.render(self.content, True, self.color)
+            surface.blit(text_surface, self.position)
 
     def checkClick(self, pos):
         return []
@@ -109,7 +151,7 @@ class Button(RenderObject):
 
         self.radius = radius
 
-        # ---- Icona
+        # ---- Icon
         self.icon = None
         self.icon_size = icon_size
         if icon_path:
@@ -119,7 +161,7 @@ class Button(RenderObject):
             except Exception as e:
                 print(f"[Button] Icon load failed ({icon_path}): {e}")
 
-        # ---- Suoni
+        # ---- Sounds
         self.hover_sound = None
         self.click_sound = None
 
@@ -135,7 +177,7 @@ class Button(RenderObject):
 
         self._hovered_last_frame = False
 
-        # ---- Glow animato
+        # ---- Animated glow
         self.glow_speed = 0.008
 
     def _is_hovered(self):
@@ -145,14 +187,14 @@ class Button(RenderObject):
     def render(self, surface):
         hovered = self._is_hovered()
 
-        # 🔊 hover sound (solo all’entrata)
+        # 🔊 hover sound (only on entry)
         if hovered and not self._hovered_last_frame:
             if self.hover_sound:
                 self.hover_sound.play()
 
         self._hovered_last_frame = hovered
 
-        # ✨ glow animato
+        # ✨ animated glow
         if hovered:
             t = pygame.time.get_ticks()
             pulse01 = (math.sin(t * self.glow_speed) + 1.0) / 2.0
@@ -171,7 +213,7 @@ class Button(RenderObject):
                     border_radius=self.radius,
                 )
 
-        # ---- Bottone
+        # ---- Button
         bg = (200, 60, 60) if not hovered else (235, 90, 90)
         border = (255, 255, 255)
         shadow = (0, 0, 0)
@@ -184,7 +226,7 @@ class Button(RenderObject):
         pygame.draw.rect(surface, bg, self.rect, border_radius=self.radius)
         pygame.draw.rect(surface, border, self.rect, width=2, border_radius=self.radius)
 
-        # ---- Testo + icona
+        # ---- Text + icon
         text_surf = self.font.render(self.text, True, (255, 255, 255))
         text_w, text_h = text_surf.get_size()
 
@@ -212,7 +254,7 @@ class Button(RenderObject):
 
 
 # =====================
-# GAME VIEW (SFONDO MENU + LOAD)
+# GAME VIEW (MENU + LOAD BACKGROUND)
 # =====================
 class GameView:
     def __init__(self):
@@ -254,6 +296,13 @@ class GameView:
             overlay.set_alpha(80)
             overlay.fill((0, 0, 0))
             self.screen.screen.blit(overlay, (0, 0))
+        elif self.current_scene == "ENDINGS_MENU":
+            # Dark semi-transparent background for endings menu
+            self.screen.screen.fill((20, 20, 30))
+            # Draw central panel
+            panel_rect = pygame.Rect(40, 20, 720, 560)
+            pygame.draw.rect(self.screen.screen, (40, 40, 50), panel_rect)
+            pygame.draw.rect(self.screen.screen, (100, 100, 150), panel_rect, width=3)
         else:
             self.screen.screen.fill((30, 30, 30))
 

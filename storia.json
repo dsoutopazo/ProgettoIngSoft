@@ -9,6 +9,7 @@
             "abilities": []
         }
     },
+    "levels": 3,
     "nodes": {
         "0": {
             "text": "Kingdom of Lulucia. You seek the ruler to avenge your families. A wise Seer offers help in exchange for a gift.",
@@ -21,7 +22,9 @@
             ],
             "nextRight": [
                 [[], "1_PIT_GUIDED"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "1_PIT_ALONE": {
             "text": "The Seer refused the cards. You wander alone but eventually find a big pit. P1 is afraid to jump.",
@@ -34,7 +37,9 @@
             ],
             "nextRight": [
                 [[], "FAIL_JUMP"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "1_PIT_GUIDED": {
             "text": "The Seer accepted the fruit! The bright star leads you to the forest pit. P1 is afraid to jump.",
@@ -47,7 +52,9 @@
             ],
             "nextRight": [
                 [[], "FAIL_JUMP"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "2_TENTS_P1": {
             "text": "You cross safely. Inside soldier tents, you find supplies. What does P1 take?",
@@ -60,7 +67,9 @@
             ],
             "nextRight": [
                 [[], "2_TENTS_P2"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "2_TENTS_P2": {
             "text": "And what does P2 take?",
@@ -73,7 +82,9 @@
             ],
             "nextRight": [
                 [[], "3_GOBLIN_ENCOUNTER"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "3_GOBLIN_ENCOUNTER": {
             "text": "Soldiers are coming! You run, but a Big Goblin blocks the exit.",
@@ -86,7 +97,9 @@
             ],
             "nextRight": [
                 [[], "4_GOBLIN_FIGHT_TALK"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "4_GOBLIN_FIGHT_SNEAK": {
             "text": "He hears you and gets angry! He attacks. Who fights him?",
@@ -103,7 +116,9 @@
                 [["sword"], "5_GOBLIN_DEAD"],
                 [["lucky_clover"], "5_GOBLIN_TRAPPED"],
                 [[], "FAIL_UNARMED"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "4_GOBLIN_FIGHT_TALK": {
             "text": "He thinks you want to steal his food! He attacks. Who fights him?",
@@ -120,7 +135,9 @@
                 [["sword"], "5_GOBLIN_DEAD"],
                 [["lucky_clover"], "5_GOBLIN_TRAPPED"],
                 [[], "FAIL_UNARMED"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "5_GOBLIN_INFO": {
             "text": "The Goblin loves the carrots! He stops fighting and tells you: 'The castle is at the east exit'.",
@@ -129,7 +146,9 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "6_CASTLE_LOOT"]],
-            "nextRight": [[[], "6_CASTLE_LOOT"]]
+            "nextRight": [[[], "6_CASTLE_LOOT"]],
+            "level": 1,
+            "ending": "NO"
         },
         "5_GOBLIN_DEAD": {
             "text": "P2 slays the Goblin with the sword. The path is clear.",
@@ -138,7 +157,9 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "6_CASTLE_LOOT"]],
-            "nextRight": [[[], "6_CASTLE_LOOT"]]
+            "nextRight": [[[], "6_CASTLE_LOOT"]],
+            "level": 1,
+            "ending": "NO"
         },
         "5_GOBLIN_TRAPPED": {
             "text": "P2 was losing, but the Lucky Clover saved him! A tree fell on the Goblin. He yells the way to the castle.",
@@ -147,7 +168,9 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "6_CASTLE_LOOT"]],
-            "nextRight": [[[], "6_CASTLE_LOOT"]]
+            "nextRight": [[[], "6_CASTLE_LOOT"]],
+            "level": 1,
+            "ending": "NO"
         },
         "6_CASTLE_LOOT": {
             "text": "Inside the castle, you find a chest. P1 chooses a weapon, the other goes to P2.",
@@ -160,7 +183,9 @@
             ],
             "nextRight": [
                 [[], "7_TRAPS"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "7_TRAPS": {
             "text": "Traps ahead! P2 must decide how to proceed.",
@@ -173,7 +198,9 @@
             ],
             "nextRight": [
                 [[], "8_RULER_ROOM"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "8_RULER_ROOM": {
             "text": "You reach the Ruler! Who fights?",
@@ -189,7 +216,9 @@
                 [["sword"], "9_FINAL_CHOICE"],
                 [["lucky_clover", "p2_potion"], "9_FINAL_CHOICE"],
                 [[], "FAIL_NO_WEAPON"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "9_FINAL_CHOICE": {
             "text": "P2 defeats the ruler! He is at your mercy.",
@@ -202,7 +231,9 @@
             ],
             "nextRight": [
                 [[], "WIN_TO_BE_CONTINUED_KILL"]
-            ]
+            ],
+            "level": 1,
+            "ending": "NO"
         },
         "FAIL_JUMP": {
             "text": "GAME OVER. P2 tried to catch P1, but without a bridge, they both fell into the pit.",
@@ -211,7 +242,10 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextRight": [[[], "EXIT"]],
+            "level": 1,
+            "ending": "FAIL",
+            "endingTitle": "Pit Fall"
         },
         "FAIL_GOBLIN_ARROWS": {
             "text": "GAME OVER. The arrows bounced off the Goblin's thick skin. P1 was crushed.",
@@ -220,7 +254,10 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextRight": [[[], "EXIT"]],
+            "level": 1,
+            "ending": "FAIL",
+            "endingTitle": "Useless Arrows"
         },
         "FAIL_UNARMED": {
             "text": "GAME OVER. You tried to fight without the correct item.",
@@ -229,7 +266,10 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextRight": [[[], "EXIT"]],
+            "level": 1,
+            "ending": "FAIL",
+            "endingTitle": "Unarmed"
         },
         "FAIL_TRAPS_TOO_SLOW": {
             "text": "GAME OVER. You proceeded with caution, but the traps were too fast. You needed speed or luck.",
@@ -238,7 +278,10 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextRight": [[[], "EXIT"]],
+            "level": 1,
+            "ending": "FAIL",
+            "endingTitle": "Deadly Traps"
         },
         "FAIL_P1_VS_RULER": {
             "text": "GAME OVER. P1 tried to fight the ruler but wasn't strong enough.",
@@ -247,7 +290,10 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextRight": [[[], "EXIT"]],
+            "level": 1,
+            "ending": "FAIL",
+            "endingTitle": "P1 Defeated"
         },
         "FAIL_BAD_COMBO": {
             "text": "GAME OVER. P2 had the Lucky Clover and the Shield. This combination lacked offensive power!",
@@ -256,7 +302,10 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextRight": [[[], "EXIT"]],
+            "level": 1,
+            "ending": "FAIL",
+            "endingTitle": "Useless Combo"
         },
         "WIN_TO_BE_CONTINUED_SPARE": {
             "text": "VICTORY? You spared him. He reveals he is not the true ruler and shows you the path. TO BE CONTINUED...",
@@ -265,7 +314,10 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextRight": [[[], "EXIT"]],
+            "level": 1,
+            "ending": "WIN",
+            "endingTitle": "Mercy"
         },
         "WIN_TO_BE_CONTINUED_KILL": {
             "text": "VICTORY? You killed him. The sky clears, but the star points to a new location. It's not over. TO BE CONTINUED...",
@@ -274,7 +326,22 @@
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextRight": [[[], "EXIT"]],
+            "level": 1,
+            "ending": "WIN",
+            "endingTitle": "Revenge"
+        },
+        "FAIL_NO_WEAPON": {
+            "text": "GAME OVER. You tried to fight without the correct item.",
+            "leftText": "Restart",
+            "rightText": "Quit",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [[[], "0"]],
+            "nextRight": [[[], "EXIT"]],
+            "level": 1,
+            "ending": "FAIL",
+            "endingTitle": "No Weapon vs Ruler"
         }
     }
 }
