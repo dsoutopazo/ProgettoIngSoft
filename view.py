@@ -8,6 +8,9 @@ try:
 except Exception as e:
     print("[Audio] mixer init failed:", e)
 
+# Volume globale effetti (hover/click). Lo modifica il controller.
+SFX_VOLUME = 1.0
+
 
 # =====================
 # SCREEN
@@ -21,7 +24,7 @@ class Screen:
     def initScreen(self):
         pygame.init()
         self.screen = pygame.display.set_mode((self.width, self.height))
-        pygame.display.set_caption("BETA GAME")
+        pygame.display.set_caption("The adventures of Lulucia       @UNIPA")
 
 
 # =====================
@@ -51,59 +54,17 @@ class RenderObject:
 # TEXT
 # =====================
 class Text(RenderObject):
-    def __init__(self, position, content, color=(255, 255, 255), max_width=None):
+    def __init__(self, position, content, color=(255, 255, 255)):
         super().__init__()
         self.position = position
         self.content = content
         self.color = color
-        self.max_width = max_width  # Maximum width in pixels for text wrapping
         pygame.font.init()
         self.font = pygame.font.SysFont("Arial", 26, bold=True)
 
-    def _wrap_text(self, text, font, max_width):
-        """Wrap text to fit within max_width, returning list of lines"""
-        if not max_width:
-            return [text]
-        
-        words = text.split(' ')
-        lines = []
-        current_line = []
-        
-        for word in words:
-            # Test if adding this word would exceed max_width
-            test_line = ' '.join(current_line + [word])
-            test_surface = font.render(test_line, True, self.color)
-            
-            if test_surface.get_width() <= max_width:
-                current_line.append(word)
-            else:
-                # Current line is full, start a new line
-                if current_line:
-                    lines.append(' '.join(current_line))
-                    current_line = [word]
-                else:
-                    # Word itself is too long, add it anyway (or could break it)
-                    lines.append(word)
-        
-        if current_line:
-            lines.append(' '.join(current_line))
-        
-        return lines if lines else [text]
-
     def render(self, surface):
-        if self.max_width:
-            # Render with word wrapping
-            lines = self._wrap_text(self.content, self.font, self.max_width)
-            y_offset = 0
-            for line in lines:
-                if line:  # Skip empty lines
-                    text_surface = self.font.render(line, True, self.color)
-                    surface.blit(text_surface, (self.position[0], self.position[1] + y_offset))
-                    y_offset += text_surface.get_height() + 2  # Small spacing between lines
-        else:
-            # Render without wrapping (original behavior)
-            text_surface = self.font.render(self.content, True, self.color)
-            surface.blit(text_surface, self.position)
+        text_surface = self.font.render(self.content, True, self.color)
+        surface.blit(text_surface, self.position)
 
     def checkClick(self, pos):
         return []
@@ -126,7 +87,7 @@ class Image(RenderObject):
 
 
 # =====================
-# BUTTON (ICONA + HOVER + CLICK + GLOW ANIMATO)
+# BUTTON (ICONA + HOVER + CLICK + GLOW ANIMATO) + ACTION_ID
 # =====================
 class Button(RenderObject):
     def __init__(
@@ -139,6 +100,7 @@ class Button(RenderObject):
         radius=14,
         hover_sound_path="assets/sounds/hover.wav",
         click_sound_path="assets/sounds/click.wav",
+        action_id=None,   # ✅ nuovo: id azione (per bottoni solo icona o eventi stabili)
     ):
         super().__init__()
         self.position = position
@@ -150,18 +112,23 @@ class Button(RenderObject):
         self.font = pygame.font.SysFont("Arial", 24, bold=True)
 
         self.radius = radius
+        self.action_id = action_id  # ✅
 
-        # ---- Icon
+        # ---- Icona (path robusto: relativo al file view.py)
         self.icon = None
         self.icon_size = icon_size
         if icon_path:
             try:
-                img = pygame.image.load(icon_path).convert_alpha()
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                full_path = icon_path
+                if not os.path.isabs(icon_path):
+                    full_path = os.path.join(base_dir, icon_path)
+                img = pygame.image.load(full_path).convert_alpha()
                 self.icon = pygame.transform.smoothscale(img, (icon_size, icon_size))
             except Exception as e:
                 print(f"[Button] Icon load failed ({icon_path}): {e}")
 
-        # ---- Sounds
+        # ---- Suoni
         self.hover_sound = None
         self.click_sound = None
 
@@ -177,8 +144,8 @@ class Button(RenderObject):
 
         self._hovered_last_frame = False
 
-        # ---- Animated glow
-        self.glow_speed = 0.008
+        # ---- Glow animato
+        self.glow_speed = 0.008  # prova 0.006–0.012
 
     def _is_hovered(self):
         mx, my = pygame.mouse.get_pos()
@@ -187,14 +154,16 @@ class Button(RenderObject):
     def render(self, surface):
         hovered = self._is_hovered()
 
-        # 🔊 hover sound (only on entry)
+        # 🔊 hover sound (solo all’entrata)
         if hovered and not self._hovered_last_frame:
             if self.hover_sound:
-                self.hover_sound.play()
+                ch = self.hover_sound.play()
+                if ch:
+                    ch.set_volume(SFX_VOLUME)
 
         self._hovered_last_frame = hovered
 
-        # ✨ animated glow
+        # ✨ glow animato
         if hovered:
             t = pygame.time.get_ticks()
             pulse01 = (math.sin(t * self.glow_speed) + 1.0) / 2.0
@@ -213,7 +182,7 @@ class Button(RenderObject):
                     border_radius=self.radius,
                 )
 
-        # ---- Button
+        # ---- Bottone
         bg = (200, 60, 60) if not hovered else (235, 90, 90)
         border = (255, 255, 255)
         shadow = (0, 0, 0)
@@ -226,13 +195,13 @@ class Button(RenderObject):
         pygame.draw.rect(surface, bg, self.rect, border_radius=self.radius)
         pygame.draw.rect(surface, border, self.rect, width=2, border_radius=self.radius)
 
-        # ---- Text + icon
+        # ---- Contenuto (icona + testo centrati)
         text_surf = self.font.render(self.text, True, (255, 255, 255))
         text_w, text_h = text_surf.get_size()
 
         gap = 10
         icon_w = self.icon_size if self.icon else 0
-        content_w = icon_w + (gap if self.icon else 0) + text_w
+        content_w = icon_w + (gap if self.icon and self.text else 0) + (text_w if self.text else 0)
 
         start_x = self.rect.x + (self.rect.w - content_w) // 2
         center_y = self.rect.y + self.rect.h // 2
@@ -240,27 +209,35 @@ class Button(RenderObject):
         if self.icon:
             icon_y = center_y - self.icon_size // 2
             surface.blit(self.icon, (start_x, icon_y))
-            start_x += self.icon_size + gap
+            start_x += self.icon_size + (gap if self.text else 0)
 
-        text_y = center_y - text_h // 2
-        surface.blit(text_surf, (start_x, text_y))
+        if self.text:
+            text_y = center_y - text_h // 2
+            surface.blit(text_surf, (start_x, text_y))
 
     def checkClick(self, pos):
         if self.rect.collidepoint(pos):
             if self.click_sound:
-                self.click_sound.play()
+                ch = self.click_sound.play()
+                if ch:
+                    ch.set_volume(SFX_VOLUME)
+
+            # ✅ se c'è action_id, ritorna sempre quello (stabile)
+            if self.action_id:
+                return [f"ACTION:{self.action_id}"]
+
             return [f"Button '{self.text}' clicked"]
         return []
 
 
 # =====================
-# GAME VIEW (MENU + LOAD BACKGROUND)
+# GAME VIEW (SFONDO MENU + LOAD)
 # =====================
 class GameView:
     def __init__(self):
         self.screen = Screen()
         self.root = RenderObject(zLayer=0)
-        self.current_scene = "MENU"
+        self.current_scene = "MENU"  # MENU | LOAD | GAME | EXIT_CONFIRM | SAVE_SLOTS
         self.menu_bg = None
 
     def initScreen(self):
@@ -296,13 +273,6 @@ class GameView:
             overlay.set_alpha(80)
             overlay.fill((0, 0, 0))
             self.screen.screen.blit(overlay, (0, 0))
-        elif self.current_scene == "ENDINGS_MENU":
-            # Dark semi-transparent background for endings menu
-            self.screen.screen.fill((20, 20, 30))
-            # Draw central panel
-            panel_rect = pygame.Rect(40, 20, 720, 560)
-            pygame.draw.rect(self.screen.screen, (40, 40, 50), panel_rect)
-            pygame.draw.rect(self.screen.screen, (100, 100, 150), panel_rect, width=3)
         else:
             self.screen.screen.fill((30, 30, 30))
 

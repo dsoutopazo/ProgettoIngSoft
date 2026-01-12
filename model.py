@@ -7,22 +7,19 @@ import json
 
 @dataclass
 class Scelta:
-    ''' Represents a single choice '''
-    key:          str  # unique key of the choice
-    nextRight:    list[tuple[list[str], str]]  # list of tuples (required objects, next choice key)
-    nextLeft:     list[tuple[list[str], str]]  # list of tuples (required objects, next choice key)
-    text:         str  # text of the choice
-    rightText:    str  # text of the right button
-    leftText:     str  # text of the left button
-    rightObjects: list[str]  # objects obtained by choosing right
-    leftObjects:  list[str]  # objects obtained by choosing left
-    level:        int = 1  # level of the choice
-    ending:       str = "NO"  # ending type: "NO", "WIN", "FAIL"
-    endingTitle:  str = ""  # descriptive title of the ending (if it's an ending)
+    ''' Rappresenta una singola scelta '''
+    key:          str  # chiave univoca della scelta
+    nextRight:    list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
+    nextLeft:     list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
+    text:         str  # testo della scelta
+    rightText:    str  # testo del botone della scelta a destra
+    leftText:     str  # testo del botone della scelta a sinistra
+    rightObjects: list[str]  # oggetti ottenuti scegliendo a destra
+    leftObjects:  list[str]  # oggetti ottenuti scegliendo a sinistra
     
 
 class ScelteIterator(Iterator):
-    ''' Iterator for the collection of choices '''
+    ''' Iteratore per la collezione di scelte '''
 
     _position: str = "0"
     _reverse: bool = False
@@ -33,43 +30,37 @@ class ScelteIterator(Iterator):
         self._position =   "0"
 
     def getLeft(self, objects: list[str]) -> Scelta:
-        '''Returns the choice to the left'''
+        '''Restituisce la scelt a a sinistra'''
         options = self._collection.__getScelta__(self._position).nextLeft
         for option in options:
             required_objects, next_key = option
             if all(obj in objects for obj in required_objects):
                 self._position = next_key
-                # Handle EXIT - it's not a real node, raise special exception
-                if next_key == "EXIT":
-                    raise KeyError("EXIT")
                 return self._collection.__getScelta__(next_key)
-        raise ValueError("The no-objects path is not available for the left of Scelta key " + self._position)
+        raise ValueError("The no-objets path is not available for the left of Scelta key " + self._position)
 
     def getRight(self, objects: list[str]) -> Scelta:
-        '''Returns the choice to the right'''
+        '''Restituisce la scelta a destra'''
         options = self._collection.__getScelta__(self._position).nextRight
         for option in options:
             required_objects, next_key = option
             if all(obj in objects for obj in required_objects):
                 self._position = next_key
-                # Handle EXIT - it's not a real node, raise special exception
-                if next_key == "EXIT":
-                    raise KeyError("EXIT")
                 return self._collection.__getScelta__(next_key)
-        raise ValueError("The no-objects path is not available for the right of Scelta key " + self._position)
+        raise ValueError("The no-objets path is not available for the right of Scelta key " + self._position)
 
     def hasMore(self) -> bool:
-        '''Returns True if there are more choices to process'''
+        '''Restituisce True se ci sono altre scelte da processare'''
         current_scelta = self._collection.__getScelta__(self._position)
         return bool(current_scelta.nextLeft or current_scelta.nextRight)
 
     def __next__(self) -> Any:
-        '''Returns the next choice'''
+        '''Restituisce la prossima scelta'''
         return self.getRight([])
 
 
 class ScelteCollection(Iterable):
-    ''' Collection of choices'''
+    ''' Collezione di scelte'''
     
     def __init__(self, collection: dict[Scelta]):
         self._collection = collection or {}
@@ -108,7 +99,7 @@ class FileManager(metaclass=SingletonMeta):
         except json.JSONDecodeError:
             raise
 
-# Character: represents a game character
+# Character: rappresenta un personaggio del gioco
 
 class Character():
     def __init__(self, id: int, nickname: str = None, abilities: list = []):
@@ -123,7 +114,7 @@ class Character():
                 self.abilities = self.abilities + newAbilities
 
 
-# GameSession: represents the current game session state
+# GameSession: rappresenta lo stato della partita in corso
 
 class GameSession():
     def __init__(self, scelteCollection: ScelteCollection,characters: list[Character], currentPlayerId: int = 0, currentSceltaId: str = "0"):
