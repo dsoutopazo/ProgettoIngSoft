@@ -231,14 +231,16 @@ class MainController:
             p2 = None
 
         p1_name = getattr(p1, "nickname", "P1")
-        p1_abilities = getattr(p1, "abilities", [])
+        p1_abilities_raw = getattr(p1, "abilities", [])
+        p1_abilities = ", ".join(p1_abilities_raw) if p1_abilities_raw else "Ningunha"
 
         if p2 is not None:
             p2_name = getattr(p2, "nickname", "P2")
-            p2_abilities = getattr(p2, "abilities", [])
+            p2_abilities_raw = getattr(p2, "abilities", [])
+            p2_abilities = ", ".join(p2_abilities_raw) if p2_abilities_raw else "Ningunha"
         else:
             p2_name = "P2"
-            p2_abilities = ["(not available)"]
+            p2_abilities = "(non dispoñible)"
 
         current_id = getattr(self.session, "currentSceltaId", None)
 
@@ -254,17 +256,17 @@ class MainController:
         title = Text((300, 60), "INFO MENU", (255, 255, 255))
 
         t1 = Text((120, 150), f"P1: {p1_name}", (255, 255, 255))
-        t2 = Text((120, 190), f"P1 abilities/items: {p1_abilities}", (255, 255, 255))
+        t2 = MultiLineText((120, 190), f"P1 abilities/items: {p1_abilities}", 560, (255, 255, 255))
 
-        t3 = Text((120, 260), f"P2: {p2_name}", (255, 255, 255))
-        t4 = Text((120, 300), f"P2 abilities/items: {p2_abilities}", (255, 255, 255))
+        t3 = Text((120, 280), f"P2: {p2_name}", (255, 255, 255))
+        t4 = MultiLineText((120, 320), f"P2 abilities/items: {p2_abilities}", 560, (255, 255, 255))
 
         if current_id is not None and total_nodes is not None:
-            t5 = Text((120, 380), f"Progress: node {current_id} / {total_nodes}", (255, 255, 255))
+            t5 = Text((120, 410), f"Progress: node {current_id} / {total_nodes}", (255, 255, 255))
         elif current_id is not None:
-            t5 = Text((120, 380), f"Progress: current node = {current_id}", (255, 255, 255))
+            t5 = Text((120, 410), f"Progress: current node = {current_id}", (255, 255, 255))
         else:
-            t5 = Text((120, 380), "Progress: not available", (255, 255, 255))
+            t5 = Text((120, 410), "Progress: not available", (255, 255, 255))
 
         back = Button((250, 460), (300, 60), "Back", action_id="INFO_BACK")
 
@@ -278,9 +280,12 @@ class MainController:
         scelta = self.session.scelteCollection.__getScelta__(current)
         player = self.session.getCurrentPlayer()
 
+        abilities_str = ", ".join(player.abilities) if player.abilities else "Ningunha"
+        
         objects = [
-            Text((40, 10), f"Turno: {player.nickname} | Abilità: {player.abilities}", (200, 200, 0)),
-            Text((50, 60), scelta.text),
+            Text((40, 10), f"Turno: {player.nickname}", (200, 200, 0), font_size=22),
+            MultiLineText((40, 35), f"Abilidades: {abilities_str}", 700, (200, 200, 0), font_size=18),
+            MultiLineText((50, 80), scelta.text, 700),
         ]
 
         if scelta.leftText:

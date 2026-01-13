@@ -54,17 +54,68 @@ class RenderObject:
 # TEXT
 # =====================
 class Text(RenderObject):
-    def __init__(self, position, content, color=(255, 255, 255)):
+    def __init__(self, position, content, color=(255, 255, 255), font_size=26):
         super().__init__()
         self.position = position
         self.content = content
         self.color = color
         pygame.font.init()
-        self.font = pygame.font.SysFont("Arial", 26, bold=True)
+        self.font = pygame.font.SysFont("Arial", font_size, bold=True)
 
     def render(self, surface):
         text_surface = self.font.render(self.content, True, self.color)
         surface.blit(text_surface, self.position)
+
+    def checkClick(self, pos):
+        return []
+
+
+# =====================
+# MULTILINE TEXT (WRAP)
+# =====================
+class MultiLineText(RenderObject):
+    def __init__(self, position, content, max_width, color=(255, 255, 255), font_size=26):
+        super().__init__()
+        self.position = position
+        self.content = content
+        self.max_width = max_width
+        self.color = color
+        pygame.font.init()
+        self.font = pygame.font.SysFont("Arial", font_size, bold=True)
+        self.lines = self._wrap_text()
+
+    def _wrap_text(self):
+        if not self.content:
+            return [""]
+        words = self.content.split(' ')
+        lines = []
+        current_line = []
+
+        for word in words:
+            # Se a palabra ten saltos de liña internos
+            sub_words = word.split('\n')
+            for i, sw in enumerate(sub_words):
+                if i > 0:
+                    lines.append(' '.join(current_line))
+                    current_line = []
+                
+                test_line = ' '.join(current_line + [sw])
+                w, _ = self.font.size(test_line)
+                if w <= self.max_width:
+                    current_line.append(sw)
+                else:
+                    lines.append(' '.join(current_line))
+                    current_line = [sw]
+        
+        lines.append(' '.join(current_line))
+        return [l for l in lines if l or l == ""]
+
+    def render(self, surface):
+        y = self.position[1]
+        for line in self.lines:
+            text_surf = self.font.render(line, True, self.color)
+            surface.blit(text_surf, (self.position[0], y))
+            y += self.font.get_linesize() + 4
 
     def checkClick(self, pos):
         return []
