@@ -4,6 +4,7 @@ from collections.abc import Iterable, Iterator
 from typing import Any
 from dataclasses import dataclass
 import json
+import os
 
 @dataclass
 class Scelta:
@@ -16,6 +17,9 @@ class Scelta:
     leftText:     str  # testo del botone della scelta a sinistra
     rightObjects: list[str]  # oggetti ottenuti scegliendo a destra
     leftObjects:  list[str]  # oggetti ottenuti scegliendo a sinistra
+    turn:         int = 0    # ID do personaxe que ten a quenda
+    is_end:       bool = False # Indica se é un final (vitoria/derrota)
+    level:        int = 1    # Nivel ao que pertence o nodo
     
 
 class ScelteIterator(Iterator):
@@ -36,6 +40,8 @@ class ScelteIterator(Iterator):
             required_objects, next_key = option
             if all(obj in objects for obj in required_objects):
                 self._position = next_key
+                if next_key == "EXIT":
+                    return Scelta(key="EXIT", nextRight=[], nextLeft=[], text="", rightText="", leftText="", rightObjects=[], leftObjects=[])
                 return self._collection.__getScelta__(next_key)
         raise ValueError("The no-objets path is not available for the left of Scelta key " + self._position)
 
@@ -46,6 +52,8 @@ class ScelteIterator(Iterator):
             required_objects, next_key = option
             if all(obj in objects for obj in required_objects):
                 self._position = next_key
+                if next_key == "EXIT":
+                    return Scelta(key="EXIT", nextRight=[], nextLeft=[], text="", rightText="", leftText="", rightObjects=[], leftObjects=[])
                 return self._collection.__getScelta__(next_key)
         raise ValueError("The no-objets path is not available for the right of Scelta key " + self._position)
 
@@ -99,14 +107,31 @@ class FileManager(metaclass=SingletonMeta):
         except json.JSONDecodeError:
             raise
 
+    def saveFile(self, fileName: str, data: dict):
+        try:
+            with open(fileName, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            print(f"Error saving file {fileName}: {e}")
+
+    def loadSaves(self, fileName: str = "saves.json"):
+        try:
+            if not os.path.exists(fileName):
+                return {}
+            with open(fileName, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
 # Character: rappresenta un personaggio del gioco
 
 class Character():
-    def __init__(self, id: int, nickname: str = None, abilities: list = []):
+    def __init__(self, id: int, nickname: str = None, abilities: list = [], image_path: str = None):
         self.id = id
         if nickname: self.nickname = nickname
         else:        self.nickname = f"Player {id}"
         self.abilities = abilities
+        self.image_path = image_path
     
     def updateAbilities(self, newAbilities: list):
         for ability in newAbilities:
@@ -126,8 +151,11 @@ class GameSession():
     def getCurrentPlayer(self) -> Character:
         return self.characters[self.currentPlayerId]
     
-    def switchTurn(self):
-        self.currentPlayerId = (self.currentPlayerId + 1) % len(self.characters)
+    def switchTurn(self, forced_turn=None):
+        if forced_turn is not None:
+            self.currentPlayerId = forced_turn
+        else:
+            self.currentPlayerId = (self.currentPlayerId + 1) % len(self.characters)
     
     def updateCurrentScelta(self, newSceltaId):
         self.currentSceltaId = newSceltaId

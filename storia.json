@@ -1,226 +1,478 @@
 {
     "characters": {
         "0": {
-            "nickname": "P1 (The Avenger)",
-            "abilities": []
+            "nickname": "The Avenger",
+            "abilities": [],
+            "image": "assets/characters/p1.png"
         },
         "1": {
-            "nickname": "P2 (The Agile)",
-            "abilities": []
+            "nickname": "The Agile",
+            "abilities": [],
+            "image": "assets/characters/p2.png"
         }
     },
     "nodes": {
         "0": {
+            "turn": 0,
             "text": "Kingdom of Lulucia. You seek the ruler to avenge your families. A wise Seer offers help in exchange for a gift.",
             "leftText": "Give Deck of Cards",
             "rightText": "Give Dragon Fruit",
-            "leftObjects": ["cards"],
-            "rightObjects": ["dragon_fruit"],
+            "leftObjects": [
+                "cards"
+            ],
+            "rightObjects": [
+                "dragon_fruit"
+            ],
             "nextLeft": [
-                [[], "1_PIT_ALONE"]
+                [
+                    [],
+                    "1_PIT_ALONE"
+                ]
             ],
             "nextRight": [
-                [[], "1_PIT_GUIDED"]
-            ]
+                [
+                    [],
+                    "1_PIT_GUIDED"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "1_PIT_ALONE": {
-            "text": "The Seer refused the cards. You wander alone but eventually find a big pit. P1 is afraid to jump.",
+            "turn": 1,
+            "text": "The Seer refused the cards. You wander alone but eventually find a big pit. The Avenger is afraid to jump.",
             "leftText": "Kick down tree (Make bridge)",
-            "rightText": "Tell P1 'I will catch you'",
-            "leftObjects": ["tree_bridge"],
+            "rightText": "Tell The Avenger 'I will catch you'",
+            "leftObjects": [
+                "tree_bridge"
+            ],
             "rightObjects": [],
             "nextLeft": [
-                [[], "2_TENTS_P1"]
+                [
+                    [],
+                    "2_TENTS_P1"
+                ]
             ],
             "nextRight": [
-                [[], "FAIL_JUMP"]
-            ]
+                [
+                    [],
+                    "FAIL_JUMP"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "1_PIT_GUIDED": {
-            "text": "The Seer accepted the fruit! The bright star leads you to the forest pit. P1 is afraid to jump.",
+            "turn": 1,
+            "text": "The Seer accepted the fruit! The bright star leads you to the forest pit. The Avenger is afraid to jump.",
             "leftText": "Kick down tree (Make bridge)",
-            "rightText": "Tell P1 'I will catch you'",
-            "leftObjects": ["tree_bridge"],
+            "rightText": "Tell The Avenger 'I will catch you'",
+            "leftObjects": [
+                "tree_bridge"
+            ],
             "rightObjects": [],
             "nextLeft": [
-                [[], "2_TENTS_P1"]
+                [
+                    [],
+                    "2_TENTS_P1"
+                ]
             ],
             "nextRight": [
-                [[], "FAIL_JUMP"]
-            ]
+                [
+                    [],
+                    "FAIL_JUMP"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "2_TENTS_P1": {
-            "text": "You cross safely. Inside soldier tents, you find supplies. What does P1 take?",
+            "turn": 0,
+            "text": "You cross safely. Inside soldier tents, you find supplies. What does The Avenger take?",
             "leftText": "A Bow with Arrows",
             "rightText": "Bag of Carrots",
-            "leftObjects": ["bow"],
-            "rightObjects": ["carrots"],
+            "leftObjects": [
+                "bow"
+            ],
+            "rightObjects": [
+                "carrots"
+            ],
             "nextLeft": [
-                [[], "2_TENTS_P2"]
+                [
+                    [],
+                    "2_TENTS_P2"
+                ]
             ],
             "nextRight": [
-                [[], "2_TENTS_P2"]
-            ]
+                [
+                    [],
+                    "2_TENTS_P2"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "2_TENTS_P2": {
-            "text": "And what does P2 take?",
+            "turn": 1,
+            "text": "And what does The Agile take?",
             "leftText": "A Sword",
             "rightText": "Lucky Clover",
-            "leftObjects": ["sword"],
-            "rightObjects": ["lucky_clover"],
+            "leftObjects": [
+                "sword"
+            ],
+            "rightObjects": [
+                "lucky_clover"
+            ],
             "nextLeft": [
-                [[], "3_GOBLIN_ENCOUNTER"]
+                [
+                    [],
+                    "3_GOBLIN_ENCOUNTER"
+                ]
             ],
             "nextRight": [
-                [[], "3_GOBLIN_ENCOUNTER"]
-            ]
+                [
+                    [],
+                    "3_GOBLIN_ENCOUNTER"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "3_GOBLIN_ENCOUNTER": {
+            "turn": 0,
             "text": "Soldiers are coming! You run, but a Big Goblin blocks the exit.",
             "leftText": "Sneak past",
             "rightText": "Talk to him",
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [
-                [[], "4_GOBLIN_FIGHT_SNEAK"]
+                [
+                    [],
+                    "4_GOBLIN_FIGHT_SNEAK"
+                ]
             ],
             "nextRight": [
-                [[], "4_GOBLIN_FIGHT_TALK"]
-            ]
+                [
+                    [],
+                    "4_GOBLIN_FIGHT_TALK"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "4_GOBLIN_FIGHT_SNEAK": {
+            "turn": 1,
             "text": "He hears you and gets angry! He attacks. Who fights him?",
-            "leftText": "P1 fights",
-            "rightText": "P2 fights",
+            "leftText": "The Avenger fights",
+            "rightText": "The Agile fights",
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [
-                [["carrots"], "5_GOBLIN_INFO"],
-                [["bow"], "FAIL_GOBLIN_ARROWS"],
-                [[], "FAIL_UNARMED"]
+                [
+                    [
+                        "carrots"
+                    ],
+                    "5_GOBLIN_INFO"
+                ],
+                [
+                    [
+                        "bow"
+                    ],
+                    "FAIL_GOBLIN_ARROWS"
+                ],
+                [
+                    [],
+                    "FAIL_UNARMED"
+                ]
             ],
             "nextRight": [
-                [["sword"], "5_GOBLIN_DEAD"],
-                [["lucky_clover"], "5_GOBLIN_TRAPPED"],
-                [[], "FAIL_UNARMED"]
-            ]
+                [
+                    [
+                        "sword"
+                    ],
+                    "5_GOBLIN_DEAD"
+                ],
+                [
+                    [
+                        "lucky_clover"
+                    ],
+                    "5_GOBLIN_TRAPPED"
+                ],
+                [
+                    [],
+                    "FAIL_UNARMED"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "4_GOBLIN_FIGHT_TALK": {
+            "turn": 1,
             "text": "He thinks you want to steal his food! He attacks. Who fights him?",
-            "leftText": "P1 fights",
-            "rightText": "P2 fights",
+            "leftText": "The Avenger fights",
+            "rightText": "The Agile fights",
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [
-                [["carrots"], "5_GOBLIN_INFO"],
-                [["bow"], "FAIL_GOBLIN_ARROWS"],
-                [[], "FAIL_UNARMED"]
+                [
+                    [
+                        "carrots"
+                    ],
+                    "5_GOBLIN_INFO"
+                ],
+                [
+                    [
+                        "bow"
+                    ],
+                    "FAIL_GOBLIN_ARROWS"
+                ],
+                [
+                    [],
+                    "FAIL_UNARMED"
+                ]
             ],
             "nextRight": [
-                [["sword"], "5_GOBLIN_DEAD"],
-                [["lucky_clover"], "5_GOBLIN_TRAPPED"],
-                [[], "FAIL_UNARMED"]
-            ]
+                [
+                    [
+                        "sword"
+                    ],
+                    "5_GOBLIN_DEAD"
+                ],
+                [
+                    [
+                        "lucky_clover"
+                    ],
+                    "5_GOBLIN_TRAPPED"
+                ],
+                [
+                    [],
+                    "FAIL_UNARMED"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "5_GOBLIN_INFO": {
+            "turn": 0,
             "text": "The Goblin loves the carrots! He stops fighting and tells you: 'The castle is at the east exit'.",
             "leftText": "Go to Castle",
             "rightText": "Climb Mountain first",
             "leftObjects": [],
             "rightObjects": [],
-            "nextLeft": [[[], "6_CASTLE_LOOT"]],
-            "nextRight": [[[], "6_CASTLE_LOOT"]]
-        },
-        "5_GOBLIN_DEAD": {
-            "text": "P2 slays the Goblin with the sword. The path is clear.",
-            "leftText": "Go to Castle",
-            "rightText": "Climb Mountain first",
-            "leftObjects": [],
-            "rightObjects": [],
-            "nextLeft": [[[], "6_CASTLE_LOOT"]],
-            "nextRight": [[[], "6_CASTLE_LOOT"]]
-        },
-        "5_GOBLIN_TRAPPED": {
-            "text": "P2 was losing, but the Lucky Clover saved him! A tree fell on the Goblin. He yells the way to the castle.",
-            "leftText": "Go to Castle",
-            "rightText": "Climb Mountain first",
-            "leftObjects": [],
-            "rightObjects": [],
-            "nextLeft": [[[], "6_CASTLE_LOOT"]],
-            "nextRight": [[[], "6_CASTLE_LOOT"]]
-        },
-        "6_CASTLE_LOOT": {
-            "text": "Inside the castle, you find a chest. P1 chooses a weapon, the other goes to P2.",
-            "leftText": "Take Shield (P2 gets Potion)",
-            "rightText": "Take Blue Potion (P2 gets Shield)",
-            "leftObjects": ["p1_shield", "p2_potion"],
-            "rightObjects": ["p1_potion", "p2_shield"],
             "nextLeft": [
-                [[], "7_TRAPS"]
+                [
+                    [],
+                    "6_CASTLE_LOOT"
+                ]
             ],
             "nextRight": [
-                [[], "7_TRAPS"]
-            ]
+                [
+                    [],
+                    "6_CASTLE_LOOT"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
+        },
+        "5_GOBLIN_DEAD": {
+            "turn": 0,
+            "text": "The Agile slays the Goblin with the sword. The path is clear.",
+            "leftText": "Go to Castle",
+            "rightText": "Climb Mountain first",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [
+                [
+                    [],
+                    "6_CASTLE_LOOT"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "6_CASTLE_LOOT"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
+        },
+        "5_GOBLIN_TRAPPED": {
+            "turn": 0,
+            "text": "The Agile was losing, but the Lucky Clover saved him! A tree fell on the Goblin. He yells the way to the castle.",
+            "leftText": "Go to Castle",
+            "rightText": "Climb Mountain first",
+            "leftObjects": [],
+            "rightObjects": [],
+            "nextLeft": [
+                [
+                    [],
+                    "6_CASTLE_LOOT"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "6_CASTLE_LOOT"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
+        },
+        "6_CASTLE_LOOT": {
+            "turn": 1,
+            "text": "Inside the castle, you find a chest. The Avenger chooses a weapon, the other goes to The Agile.",
+            "leftText": "Take Shield (The Agile gets Potion)",
+            "rightText": "Take Blue Potion (The Agile gets Shield)",
+            "leftObjects": [
+                "p1_shield",
+                "p2_potion"
+            ],
+            "rightObjects": [
+                "p1_potion",
+                "p2_shield"
+            ],
+            "nextLeft": [
+                [
+                    [],
+                    "7_TRAPS"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "7_TRAPS"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "7_TRAPS": {
-            "text": "Traps ahead! P2 must decide how to proceed.",
+            "turn": 0,
+            "text": "Traps ahead! The Agile must decide how to proceed.",
             "leftText": "Proceed with caution",
             "rightText": "Run and Jump / Trust Clover",
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [
-                [[], "FAIL_TRAPS_TOO_SLOW"]
+                [
+                    [],
+                    "FAIL_TRAPS_TOO_SLOW"
+                ]
             ],
             "nextRight": [
-                [[], "8_RULER_ROOM"]
-            ]
+                [
+                    [],
+                    "8_RULER_ROOM"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "8_RULER_ROOM": {
+            "turn": 1,
             "text": "You reach the Ruler! Who fights?",
-            "leftText": "P1 fights",
-            "rightText": "P2 fights",
+            "leftText": "The Avenger fights",
+            "rightText": "The Agile fights",
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [
-                [[], "FAIL_P1_VS_RULER"]
+                [
+                    [],
+                    "FAIL_P1_VS_RULER"
+                ]
             ],
             "nextRight": [
-                [["lucky_clover", "p2_shield"], "FAIL_BAD_COMBO"],
-                [["sword"], "9_FINAL_CHOICE"],
-                [["lucky_clover", "p2_potion"], "9_FINAL_CHOICE"],
-                [[], "FAIL_NO_WEAPON"]
-            ]
+                [
+                    [
+                        "lucky_clover",
+                        "p2_shield"
+                    ],
+                    "FAIL_BAD_COMBO"
+                ],
+                [
+                    [
+                        "sword"
+                    ],
+                    "9_FINAL_CHOICE"
+                ],
+                [
+                    [
+                        "lucky_clover",
+                        "p2_potion"
+                    ],
+                    "9_FINAL_CHOICE"
+                ],
+                [
+                    [],
+                    "FAIL_NO_WEAPON"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "9_FINAL_CHOICE": {
-            "text": "P2 defeats the ruler! He is at your mercy.",
+            "turn": 0,
+            "text": "The Agile defeats the ruler! He is at your mercy.",
             "leftText": "Spare him (Risparmiare)",
             "rightText": "Kill him (Uccidere)",
             "leftObjects": [],
             "rightObjects": [],
             "nextLeft": [
-                [[], "WIN_TO_BE_CONTINUED_SPARE"]
+                [
+                    [],
+                    "WIN_TO_BE_CONTINUED_SPARE"
+                ]
             ],
             "nextRight": [
-                [[], "WIN_TO_BE_CONTINUED_KILL"]
-            ]
+                [
+                    [],
+                    "WIN_TO_BE_CONTINUED_KILL"
+                ]
+            ],
+            "is_end": false,
+            "level": 1
         },
         "FAIL_JUMP": {
-            "text": "GAME OVER. P2 tried to catch P1, but without a bridge, they both fell into the pit.",
+            "text": "GAME OVER. The Agile tried to catch The Avenger, but without a bridge, they both fell into the pit.",
             "leftText": "Restart",
             "rightText": "Quit",
             "leftObjects": [],
             "rightObjects": [],
-            "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextLeft": [
+                [
+                    [],
+                    "0"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "EXIT"
+                ]
+            ],
+            "is_end": true,
+            "level": 1
         },
         "FAIL_GOBLIN_ARROWS": {
-            "text": "GAME OVER. The arrows bounced off the Goblin's thick skin. P1 was crushed.",
+            "text": "GAME OVER. The arrows bounced off the Goblin's thick skin. The Avenger was crushed.",
             "leftText": "Restart",
             "rightText": "Quit",
             "leftObjects": [],
             "rightObjects": [],
-            "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextLeft": [
+                [
+                    [],
+                    "0"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "EXIT"
+                ]
+            ],
+            "is_end": true,
+            "level": 1
         },
         "FAIL_UNARMED": {
             "text": "GAME OVER. You tried to fight without the correct item.",
@@ -228,8 +480,20 @@
             "rightText": "Quit",
             "leftObjects": [],
             "rightObjects": [],
-            "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextLeft": [
+                [
+                    [],
+                    "0"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "EXIT"
+                ]
+            ],
+            "is_end": true,
+            "level": 1
         },
         "FAIL_TRAPS_TOO_SLOW": {
             "text": "GAME OVER. You proceeded with caution, but the traps were too fast. You needed speed or luck.",
@@ -237,26 +501,62 @@
             "rightText": "Quit",
             "leftObjects": [],
             "rightObjects": [],
-            "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextLeft": [
+                [
+                    [],
+                    "0"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "EXIT"
+                ]
+            ],
+            "is_end": true,
+            "level": 1
         },
         "FAIL_P1_VS_RULER": {
-            "text": "GAME OVER. P1 tried to fight the ruler but wasn't strong enough.",
+            "text": "GAME OVER. The Avenger tried to fight the ruler but wasn't strong enough.",
             "leftText": "Restart",
             "rightText": "Quit",
             "leftObjects": [],
             "rightObjects": [],
-            "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextLeft": [
+                [
+                    [],
+                    "0"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "EXIT"
+                ]
+            ],
+            "is_end": true,
+            "level": 1
         },
         "FAIL_BAD_COMBO": {
-            "text": "GAME OVER. P2 had the Lucky Clover and the Shield. This combination lacked offensive power!",
+            "text": "GAME OVER. The Agile had the Lucky Clover and the Shield. This combination lacked offensive power!",
             "leftText": "Restart",
             "rightText": "Quit",
             "leftObjects": [],
             "rightObjects": [],
-            "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextLeft": [
+                [
+                    [],
+                    "0"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "EXIT"
+                ]
+            ],
+            "is_end": true,
+            "level": 1
         },
         "WIN_TO_BE_CONTINUED_SPARE": {
             "text": "VICTORY? You spared him. He reveals he is not the true ruler and shows you the path. TO BE CONTINUED...",
@@ -264,8 +564,20 @@
             "rightText": "Exit",
             "leftObjects": [],
             "rightObjects": [],
-            "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextLeft": [
+                [
+                    [],
+                    "0"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "EXIT"
+                ]
+            ],
+            "is_end": true,
+            "level": 1
         },
         "WIN_TO_BE_CONTINUED_KILL": {
             "text": "VICTORY? You killed him. The sky clears, but the star points to a new location. It's not over. TO BE CONTINUED...",
@@ -273,8 +585,20 @@
             "rightText": "Exit",
             "leftObjects": [],
             "rightObjects": [],
-            "nextLeft": [[[], "0"]],
-            "nextRight": [[[], "EXIT"]]
+            "nextLeft": [
+                [
+                    [],
+                    "0"
+                ]
+            ],
+            "nextRight": [
+                [
+                    [],
+                    "EXIT"
+                ]
+            ],
+            "is_end": true,
+            "level": 1
         }
     }
 }
