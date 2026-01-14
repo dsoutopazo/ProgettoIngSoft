@@ -20,6 +20,7 @@ class Scelta:
     turn:         int = 0    # ID do personaxe que ten a quenda
     is_end:       bool = False # Indica se é un final (vitoria/derrota)
     level:        int = 1    # Nivel ao que pertence o nodo
+    ending_title: str = None # Título do final (se is_end é True)
     
 
 class ScelteIterator(Iterator):
@@ -70,8 +71,9 @@ class ScelteIterator(Iterator):
 class ScelteCollection(Iterable):
     ''' Collezione di scelte'''
     
-    def __init__(self, collection: dict[Scelta]):
+    def __init__(self, collection: dict[Scelta], level_introductions: dict[str, str] = None):
         self._collection = collection or {}
+        self.level_introductions = level_introductions or {}
  
     def __getScelta__(self, key: str) -> Scelta:
         return self._collection[key]
@@ -101,7 +103,8 @@ class FileManager(metaclass=SingletonMeta):
                 data = json.load(f)
                 scelteInfo = data.get("nodes", {})
                 charactersInfo = data.get("characters", {})
-            return scelteInfo, charactersInfo
+                levelIntroInfo = data.get("level_introductions", {})
+            return scelteInfo, charactersInfo, levelIntroInfo
         except FileNotFoundError:
             raise FileNotFoundError(f"Error: {fileName} file not found.")
         except json.JSONDecodeError:
@@ -147,6 +150,7 @@ class GameSession():
         self.currentPlayerId = currentPlayerId
         self.currentSceltaId = currentSceltaId
         self.scelteCollection = scelteCollection
+        self.last_viewed_level = -1 # Rastrexa o último nivel para o que se mostrou a intro
     
     def getCurrentPlayer(self) -> Character:
         return self.characters[self.currentPlayerId]

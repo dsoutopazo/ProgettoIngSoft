@@ -1,29 +1,6 @@
 {
-    "1": {
-        "name": "proba3",
-        "node": "0",
-        "turn": 0,
-        "p1_abilities": [],
-        "p2_abilities": []
-    },
-    "3": {
-        "name": "proba4",
-        "node": "0",
-        "turn": 0,
-        "p1_abilities": [],
-        "p2_abilities": []
-    },
-    "2": {
-        "name": "abeeeer",
-        "node": "5_GOBLIN_DEAD",
-        "turn": 0,
-        "p1_abilities": [
-            "cards",
-            "bow"
-        ],
-        "p2_abilities": [
-            "tree_bridge",
-            "sword"
-        ]
-    }
+    "unlocked_endings": [
+        "FAIL_INSPECTION",
+        "FAIL_JUMP"
+    ]
 }
