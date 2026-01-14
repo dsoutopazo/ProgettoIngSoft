@@ -184,7 +184,9 @@ class Button(RenderObject):
         radius=14,
         hover_sound_path="assets/sounds/click.wav",
         click_sound_path="assets/sounds/click.wav",
-        action_id=None,   
+        action_id=None,
+        color=(200, 60, 60),
+        hover_color=(235, 90, 90)
     ):
         super().__init__()
         self.position = position
@@ -196,7 +198,9 @@ class Button(RenderObject):
         self.font = get_font(FONT_SIZE_BUTTON)
 
         self.radius = radius
-        self.action_id = action_id  # ✅
+        self.action_id = action_id  
+        self.color = color
+        self.hover_color = hover_color
 
         # ---- Icona (path robusto: relativo al file view.py)
         self.icon = None
@@ -237,6 +241,8 @@ class Button(RenderObject):
         return self.rect.collidepoint((mx, my))
 
     def render(self, surface):
+        if not self.display:
+            return
         hovered = self._is_hovered()
 
         # 🔊 hover sound (solo all’entrata)
@@ -268,7 +274,7 @@ class Button(RenderObject):
                 )
 
         # ---- Bottone
-        bg = (200, 60, 60) if not hovered else (235, 90, 90)
+        bg = self.color if not hovered else self.hover_color
         border = (255, 255, 255)
         shadow = (0, 0, 0)
 
@@ -377,7 +383,7 @@ class GameView:
 
     def render(self):
         # Mostramos o fondo do menú nestas escenas para manter a estética
-        menu_scenes = ("MENU", "LOAD", "SAVE", "NAMING", "WARNING", "EXIT_CONFIRM", "INFO")
+        menu_scenes = ("MENU", "LOAD", "SAVE", "NAMING", "WARNING", "EXIT_CONFIRM", "INFO", "ENDINGS", "LEVEL_INTRO")
         if self.current_scene in menu_scenes and self.menu_bg:
             self.screen.screen.blit(self.menu_bg, (0, 0))
 

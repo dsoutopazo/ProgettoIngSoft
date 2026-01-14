@@ -17,6 +17,8 @@ class MainController:
         self.save_data = self.fileManager.loadSaves()
         self.selected_slot = None
         self.temp_name = ""
+        self.gallery_page = 0
+        self.quit_after_save = False
 
         # ===== MUSICA MENU (MENU + LOAD)
         self.menu_music_playing = False
@@ -66,7 +68,7 @@ class MainController:
             position, size,
             f"Volume: {self.current_volume_label()}",
             icon_path="assets/icons/volume.png",
-            icon_size=36,
+            icon_size=28,
             action_id="VOLUME"
         )
 
@@ -113,7 +115,7 @@ class MainController:
     # =====================
     # FILE DI GIOCO
     # =====================
-    def parseScelteData(self, sceltaData):
+    def parseScelteData(self, sceltaData, intros=None):
         scelte = {}
         for key, data in sceltaData.items():
             scelte[key] = Scelta(
@@ -127,9 +129,10 @@ class MainController:
                 leftObjects=data.get("leftObjects", []),
                 turn=data.get("turn", 0),
                 is_end=data.get("is_end", False),
-                level=data.get("level", 1)
+                level=data.get("level", 1),
+                ending_title=data.get("ending_title")
             )
-        return ScelteCollection(scelte)
+        return ScelteCollection(scelte, intros)
 
     def parseCharactersData(self, charactersData):
         characters = []
@@ -145,13 +148,15 @@ class MainController:
             )
         return characters
 
-    def readGameFile(self, fileName="storia.json"):
-        scelteData, charactersData = self.fileManager.loadFile(fileName)
+    def readGameFile(self, fileName="storia.json", show_intro=True):
+        scelteData, charactersData, intros = self.fileManager.loadFile(fileName)
         self.session = GameSession(
-            self.parseScelteData(scelteData),
+            self.parseScelteData(scelteData, intros),
             self.parseCharactersData(charactersData),
         )
         self.iterator = iter(self.session.scelteCollection)
+        if show_intro:
+            self.showLevelIntro(1)
 
     # =====================
     # MENU
@@ -162,20 +167,27 @@ class MainController:
 
         title = Text((-1, 80), "The Adventures of Lulucia", (255, 255, 0), font_size=FONT_SIZE_TITLE, is_title=True)
 
-        btn_new = Button((250, 220), (300, 60), "New Game", icon_path="assets/icons/play.png")
-        btn_load = Button((250, 300), (300, 60), "Load Game", icon_path="assets\\icons\\flop disk.png", icon_size=65)
+        btn_new = Button((250, 220), (300, 60), "New Game", icon_path="assets/icons/play.png", icon_size=48)
+        btn_load = Button((250, 300), (300, 60), "Load Game", icon_path="assets/icons/flop disk.png", icon_size=48)
         btn_vol = self.make_volume_button(position=(250, 380))
-        btn_exit = Button((250, 460), (300, 60), "Exit", icon_path="assets/icons/back.png", icon_size=65)
+        btn_end = Button((250, 460), (300, 60), "Endings Gallery", action_id="INFO_ENDINGS")
 
-        self.view.linksToSubsystemObjects([title, btn_new, btn_load, btn_vol, btn_exit])
+        self.view.linksToSubsystemObjects([title, btn_new, btn_load, btn_vol, btn_end])
 
     def showLoadMenu(self):
+        prev_scene = self.view.current_scene
         self.view.setScene("LOAD")
         self.play_menu_music()
         self.save_data = self.fileManager.loadSaves()
         
-        title = Text((-1, 50), "Load Game", is_title=True)
+        title = Text((-1, 50), "Load Game", font_size=FONT_SIZE_TITLE, is_title=False)
         objects = [title]
+        
+        # Back arrow top-left
+        back_action = "GO_MAIN_MENU" if prev_scene == "MENU" else "INFO_MENU"
+        back_arrow = Button((20, 20), (45, 45), text="", icon_path="assets/icons/back.png", icon_size=35, action_id=back_action)
+        objects.append(back_arrow)
+
         positions = [(250, 180), (250, 260), (250, 340)]
         
         for i in range(1, 4):
@@ -184,17 +196,21 @@ class MainController:
             btn = Button(positions[i-1], (300, 60), f"Slot {i}: {name}", action_id=f"LOAD_SLOT_{i}")
             objects.append(btn)
             
-        # Botón de volta dinámico: ao menú principal se estamos fóra, ou ao INFO MENU se estamos dentro
-        back_action = "GO_MAIN_MENU" if self.view.current_scene == "MENU" else "INFO_MENU"
-        objects.append(Button((250, 420), (300, 60), "Back", action_id=back_action))
         self.view.linksToSubsystemObjects(objects)
 
     def showSaveSlots(self):
+        prev_scene = self.view.current_scene
         self.view.setScene("SAVE")
         self.save_data = self.fileManager.loadSaves()
         
-        title = Text((-1, 50), "Select a Save Slot", is_title=True)
+        title = Text((-1, 50), "Select a Save Slot", font_size=FONT_SIZE_TITLE, is_title=False)
         objects = [title]
+
+        # Back arrow top-left
+        back_action = "GO_MAIN_MENU" if prev_scene == "MENU" else "INFO_MENU"
+        back_arrow = Button((20, 20), (45, 45), text="", icon_path="assets/icons/back.png", icon_size=35, action_id=back_action)
+        objects.append(back_arrow)
+
         positions = [(250, 180), (250, 260), (250, 340)]
         
         for i in range(1, 4):
@@ -203,7 +219,6 @@ class MainController:
             btn = Button(positions[i-1], (300, 60), f"Slot {i}: {name}", action_id=f"SAVE_SLOT_{i}")
             objects.append(btn)
             
-        objects.append(Button((250, 420), (300, 60), "Back", action_id="INFO_MENU"))
         self.view.linksToSubsystemObjects(objects)
 
     def showNamingScreen(self):
@@ -244,8 +259,12 @@ class MainController:
         self.save_data[str(self.selected_slot)] = save_entry
         self.fileManager.saveFile("saves.json", self.save_data)
         self.is_saved = True
-        self.view.setScene("GAME")
-        self.updateView()
+        
+        if self.quit_after_save:
+            self.running = False
+        else:
+            self.view.setScene("GAME")
+            self.updateView()
 
     def perform_load(self, slot):
         slot_key = str(slot)
@@ -253,9 +272,11 @@ class MainController:
             return
             
         data = self.save_data[slot_key]
-        self.readGameFile() # Recarga historia
+        self.readGameFile(show_intro=False) # Recarga historia sin mostrar intro
         
         self.session.currentSceltaId = data["node"]
+        scelta = self.session.scelteCollection.__getScelta__(data["node"])
+        self.session.last_viewed_level = scelta.level
         self.session.currentPlayerId = data["turn"]
         self.session.characters[0].abilities = data["p1_abilities"]
         self.session.characters[1].abilities = data["p2_abilities"]
@@ -267,16 +288,103 @@ class MainController:
         self.view.setScene("GAME")
         self.updateView()
 
+    def showEndingsMenu(self):
+        prev_scene = self.view.current_scene
+        # Se xa estabamos en ENDINGS, non reiniciamos prev_scene para non perder o Back correcto
+        if self.view.current_scene != "ENDINGS":
+            self.last_scene_before_gallery = prev_scene
+            self.gallery_page = 0
+
+        self.view.setScene("ENDINGS")
+        self.save_data = self.fileManager.loadSaves()
+        unlocked = self.save_data.get("unlocked_endings", [])
+
+        if self.session is None:
+            self.readGameFile()
+        
+        title = Text((-1, 40), "ENDINGS GALLERY", font_size=FONT_SIZE_TITLE, is_title=False)
+        objects = [title]
+
+        # Back arrow top-left
+        back_action = "GO_MAIN_MENU" if prev_scene == "MENU" else "INFO_MENU"
+        back_arrow = Button((20, 20), (45, 45), text="", icon_path="assets/icons/back.png", icon_size=35, action_id=back_action)
+        objects.append(back_arrow)
+        
+        # Aplanamos a lista de finais por niveis para paxinar facilmente
+        all_items = []
+        endings_by_level = {}
+        for key, node in self.session.scelteCollection._collection.items():
+            if node.is_end:
+                lvl = node.level
+                if lvl not in endings_by_level: endings_by_level[lvl] = []
+                endings_by_level[lvl].append(node)
+        
+        for lvl in sorted(endings_by_level.keys()):
+            all_items.append({"type": "LEVEL", "val": lvl})
+            for end_node in endings_by_level[lvl]:
+                all_items.append({"type": "ENDING", "val": end_node})
+
+        # Paxinación: 8 elementos por páxina
+        per_page = 8
+        total_pages = math.ceil(len(all_items) / per_page)
+        start_idx = self.gallery_page * per_page
+        page_items = all_items[start_idx : start_idx + per_page]
+
+        y_offset = 120
+        for item in page_items:
+            if item["type"] == "LEVEL":
+                lvl = item["val"]
+                obj = Text((50, y_offset), f"Level {lvl}", font_size=FONT_SIZE_BUTTON)
+                objects.append(obj)
+            else:
+                end_node = item["val"]
+                if end_node.key in unlocked:
+                    color = (0, 255, 0) if "WIN" in end_node.key else (255, 50, 50)
+                    display_text = f"• {end_node.ending_title}"
+                else:
+                    color = (100, 100, 100)
+                    display_text = "• ???????????????"
+                obj = Text((80, y_offset), display_text, color, font_size=FONT_SIZE_NORMAL)
+                objects.append(obj)
+            y_offset += 42
+
+        # Botóns de navegación
+        if self.gallery_page > 0:
+            objects.append(Button((50, 520), (120, 50), "Prev", action_id="GALLERY_PREV"))
+        
+        if (self.gallery_page + 1) < total_pages:
+            objects.append(Button((630, 520), (120, 50), "Next", action_id="GALLERY_NEXT"))
+
+        page_info = Text((-1, 575), f"Page {self.gallery_page + 1} of {total_pages}", font_size=FONT_SIZE_SMALL)
+        objects.append(page_info)
+
+        self.view.linksToSubsystemObjects(objects)
+
+    def showLevelIntro(self, level):
+        self.view.setScene("LEVEL_INTRO")
+        intro_text = self.session.scelteCollection.level_introductions.get(str(level), "Your journey continues...")
+        
+        # Modal effect: A large colored box as background
+        bg_modal = Button((100, 80), (600, 420), text="", color=(30, 30, 30), hover_color=(30, 30, 30))
+        
+        title = Text((-1, 150), f"LEVEL {level}", font_size=FONT_SIZE_TITLE, is_title=False)
+        desc = MultiLineText((-1, 230), intro_text, 500, font_size=FONT_SIZE_NORMAL)
+        btn_continue = Button((250, 430), (300, 60), "Continue", action_id="LEVEL_CONTINUE")
+        
+        # O fondo bg_modal debe ser o primeiro para que se debuxe detrás
+        self.view.linksToSubsystemObjects([bg_modal, title, desc, btn_continue])
+        self.session.last_viewed_level = level
+
     def showExitConfirm(self):
         self.view.setScene("EXIT_CONFIRM")
 
-        title = Text((160, 180), "Vuoi chiudere senza salvare?", (255, 255, 255))
+        title = Text((-1, 180), "Quit without saving?", (255, 255, 255))
 
-        btn_yes = Button((250, 260), (300, 60), "Si", action_id="EXIT_YES")
-        btn_no  = Button((250, 340), (300, 60), "No", action_id="EXIT_NO")
+        btn_yes = Button((250, 260), (300, 60), "Yes, Quit", action_id="EXIT_YES")
+        btn_save_quit = Button((250, 340), (300, 60), "Save and quit", action_id="EXIT_SAVE_QUIT")
         btn_back = Button((250, 420), (300, 60), "Back", action_id="EXIT_BACK")
 
-        self.view.linksToSubsystemObjects([title, btn_yes, btn_no, btn_back])
+        self.view.linksToSubsystemObjects([title, btn_yes, btn_save_quit, btn_back])
 
     # =====================
     # INFO MENU (P1 + P2) + bottone in alto a destra
@@ -311,7 +419,7 @@ class MainController:
                 p2_abs_raw = getattr(p2, "abilities", [])
                 p2_abilities = ", ".join(item.replace("_", " ") for item in p2_abs_raw) if p2_abs_raw else "None"
 
-        title = Text((-1, 40), "INFO MENU", (255, 255, 255), font_size=FONT_SIZE_NORMAL, is_title=True)
+        title = Text((-1, 40), "INFO MENU", (255, 255, 255), font_size=FONT_SIZE_TITLE, is_title=False)
 
         # Back arrow top-left
         back_arrow = Button((20, 20), (45, 45), text="", icon_path="assets/icons/back.png", icon_size=35, action_id="INFO_BACK")
@@ -401,10 +509,29 @@ class MainController:
             self.showMainMenu()
             return
 
+        # Check for new level (or restart of Level 1)
+        # Se o nivel cambia ou se volve ao nivel 1 vindo dun nivel superior (reinicio)
+        if next_s.level > self.session.last_viewed_level or (next_s.level == 1 and self.session.last_viewed_level > 1):
+            self.session.updateCurrentScelta(next_s.key)
+            self.session.switchTurn(forced_turn=next_s.turn)
+            self.is_saved = False
+            self.showLevelIntro(next_s.level)
+            return
+
         self.session.updateCurrentScelta(next_s.key)
         # Aplicamos a quenda indicada polo novo nodo
         self.session.switchTurn(forced_turn=next_s.turn)
         self.is_saved = False # Marcamos como non gardado ao tomar unha decisión
+        
+        # Se é un final, gardámolo na lista global de desbloqueados
+        if next_s.is_end:
+            self.save_data = self.fileManager.loadSaves()
+            if "unlocked_endings" not in self.save_data:
+                self.save_data["unlocked_endings"] = []
+            if next_s.key not in self.save_data["unlocked_endings"]:
+                self.save_data["unlocked_endings"].append(next_s.key)
+                self.fileManager.saveFile("saves.json", self.save_data)
+
         self.updateView()
 
     # =====================
@@ -474,10 +601,26 @@ class MainController:
                             continue
 
                         if action == "INFO_ENDINGS":
-                            print("Endings clicked")
+                            self.showEndingsMenu()
+                            continue
+
+                        if action == "GALLERY_NEXT":
+                            self.gallery_page += 1
+                            self.showEndingsMenu()
+                            continue
+
+                        if action == "GALLERY_PREV":
+                            self.gallery_page -= 1
+                            self.showEndingsMenu()
                             continue
 
                         if action == "INFO_SAVE":
+                            self.quit_after_save = False
+                            self.showSaveSlots()
+                            continue
+
+                        if action == "EXIT_SAVE_QUIT":
+                            self.quit_after_save = True
                             self.showSaveSlots()
                             continue
 
@@ -505,15 +648,23 @@ class MainController:
                             self.perform_load(slot)
                             continue
 
+                        if action == "LEVEL_CONTINUE":
+                            self.view.setScene("GAME")
+                            self.updateView()
+                            continue
+
                         if action == "EXIT_YES":
                             self.running = False
                             continue
 
                         if action == "EXIT_NO":
-                            self.showSaveSlots()
+                            self.quit_after_save = False
+                            self.view.setScene("GAME")
+                            self.updateView()
                             continue
 
                         if action == "EXIT_BACK":
+                            self.quit_after_save = False
                             self.view.setScene("GAME")
                             self.updateView()
                             continue
