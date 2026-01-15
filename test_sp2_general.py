@@ -3,20 +3,31 @@ from unittest.mock import MagicMock, patch, mock_open
 import sys
 import json
 
-mock_pygame = MagicMock()
-sys.modules["pygame"] = mock_pygame
-
 from controller import MainController
 from model import Character, GameSession, Scelta, ScelteCollection
+import view
+import controller
 
 class TestSprint2MenuSaveLoad(unittest.TestCase):
 
     def setUp(self):
-        mock_pygame.reset_mock()
-        mock_font = MagicMock()
-        mock_font.size.return_value = (100, 30)
-        mock_pygame.font.Font.return_value = mock_font
-        mock_pygame.mouse.get_pos.return_value = (0, 0)
+        self.view_pygame_patcher = patch('view.pygame')
+        self.controller_pygame_patcher = patch('controller.pygame')
+        
+        self.mock_view_pygame = self.view_pygame_patcher.start()
+        self.mock_controller_pygame = self.controller_pygame_patcher.start()
+        
+        for mock_pg in [self.mock_view_pygame, self.mock_controller_pygame]:
+            mock_pg.mouse.get_pos.return_value = (0, 0)
+            mock_pg.display.set_mode.return_value = MagicMock()
+            mock_pg.event.get.return_value = []
+            
+            mock_font = MagicMock()
+            mock_font.size.return_value = (100, 30)
+            mock_font.render.return_value = MagicMock()
+            
+            mock_pg.font.Font.return_value = mock_font
+            mock_pg.font.SysFont.return_value = mock_font
         
         with patch('controller.FileManager') as MockFileManager:
             self.mock_fm = MockFileManager.return_value
@@ -24,6 +35,10 @@ class TestSprint2MenuSaveLoad(unittest.TestCase):
             self.controller = MainController()
             self.controller.view = MagicMock()
             self.controller.audio = MagicMock()
+            
+    def tearDown(self):
+        self.view_pygame_patcher.stop()
+        self.controller_pygame_patcher.stop()
 
     def test_start_menu_visualization(self):
         self.controller.showMainMenu()
