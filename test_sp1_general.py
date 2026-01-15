@@ -12,6 +12,15 @@ from model import Scelta, ScelteCollection, Character, GameSession
 class TestSprint1Story(unittest.TestCase):
 
     def setUp(self):
+
+        pygame.init()
+        pygame.font.init()
+        
+        try:
+            pygame.display.set_mode((800, 600), flags=pygame.HIDDEN) 
+        except pygame.error:
+            pass
+        
         mock_pygame.reset_mock()
         mock_font = MagicMock()
         mock_font.size.return_value = (100, 30)
