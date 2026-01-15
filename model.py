@@ -4,7 +4,6 @@ from typing import Any
 from dataclasses import dataclass
 import json
 import os
-from singleton import SingletonMeta
 
 @dataclass
 class Scelta:
