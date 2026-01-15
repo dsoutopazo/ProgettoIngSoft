@@ -11,6 +11,7 @@ import controller
 class TestSprint2MenuSaveLoad(unittest.TestCase):
 
     def setUp(self):
+
         self.view_pygame_patcher = patch('view.pygame')
         self.controller_pygame_patcher = patch('controller.pygame')
         
