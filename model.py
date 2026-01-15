@@ -1,41 +1,37 @@
-
 from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from typing import Any
 from dataclasses import dataclass
 import json
 import os
+from singleton import SingletonMeta
 
 @dataclass
 class Scelta:
     ''' Rappresenta una singola scelta '''
-    key:          str  # chiave univoca della scelta
+    key:          str                          # chiave univoca della scelta
     nextRight:    list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
     nextLeft:     list[tuple[list[str], str]]  # lista di tuple (oggetti necessari, key della scelta successiva)
-    text:         str  # testo della scelta
-    rightText:    str  # testo del botone della scelta a destra
-    leftText:     str  # testo del botone della scelta a sinistra
-    rightObjects: list[str]  # oggetti ottenuti scegliendo a destra
-    leftObjects:  list[str]  # oggetti ottenuti scegliendo a sinistra
-    turn:         int = 0    # ID do personaxe que ten a quenda
-    is_end:       bool = False # Indica se é un final (vitoria/derrota)
-    level:        int = 1    # Nivel ao que pertence o nodo
-    ending_title: str = None # Título do final (se is_end é True)
-    
+    text:         str                          # testo della scelta
+    rightText:    str                          # testo del bottone della scelta a destra
+    leftText:     str                          # testo del bottone della scelta a sinistra
+    rightObjects: list[str]                    # oggetti ottenuti scegliendo a destra
+    leftObjects:  list[str]                    # oggetti ottenuti scegliendo a sinistra
+    turn:         int = 0                      # ID del personaggio che ha il turno
+    is_end:       bool = False                 # Indica se è un finale (vittoria/sconfitta)
+    level:        int = 1                      # Livello a cui appartiene il nodo
+    ending_title: str = None                   # Titolo del finale (se is_end è True)
 
 class ScelteIterator(Iterator):
     ''' Iteratore per la collezione di scelte '''
-
     _position: str = "0"
     _reverse: bool = False
-
     def __init__(self, collection: ScelteCollection):
         self._collection = collection
         self._reverse =    False
         self._position =   "0"
-
     def getLeft(self, objects: list[str]) -> Scelta:
-        '''Restituisce la scelt a a sinistra'''
+        '''Restituisce la scelta a sinistra'''
         options = self._collection.__getScelta__(self._position).nextLeft
         for option in options:
             required_objects, next_key = option
@@ -45,7 +41,6 @@ class ScelteIterator(Iterator):
                     return Scelta(key="EXIT", nextRight=[], nextLeft=[], text="", rightText="", leftText="", rightObjects=[], leftObjects=[])
                 return self._collection.__getScelta__(next_key)
         raise ValueError("The no-objets path is not available for the left of Scelta key " + self._position)
-
     def getRight(self, objects: list[str]) -> Scelta:
         '''Restituisce la scelta a destra'''
         options = self._collection.__getScelta__(self._position).nextRight
@@ -57,16 +52,13 @@ class ScelteIterator(Iterator):
                     return Scelta(key="EXIT", nextRight=[], nextLeft=[], text="", rightText="", leftText="", rightObjects=[], leftObjects=[])
                 return self._collection.__getScelta__(next_key)
         raise ValueError("The no-objets path is not available for the right of Scelta key " + self._position)
-
     def hasMore(self) -> bool:
         '''Restituisce True se ci sono altre scelte da processare'''
         current_scelta = self._collection.__getScelta__(self._position)
         return bool(current_scelta.nextLeft or current_scelta.nextRight)
-
     def __next__(self) -> Any:
         '''Restituisce la prossima scelta'''
         return self.getRight([])
-
 
 class ScelteCollection(Iterable):
     ''' Collezione di scelte'''
@@ -80,9 +72,6 @@ class ScelteCollection(Iterable):
     
     def __iter__(self) -> ScelteIterator:
         return ScelteIterator(self)
-    
-    def add_scelte(self, scelte: dict[Scelta]) -> None:
-        self._collection.update(scelte)
 
 
 # Singleton FileManager
@@ -141,7 +130,6 @@ class Character():
             if ability not in self.abilities:
                 self.abilities = self.abilities + newAbilities
 
-
 # GameSession: rappresenta lo stato della partita in corso
 
 class GameSession():
@@ -150,7 +138,7 @@ class GameSession():
         self.currentPlayerId = currentPlayerId
         self.currentSceltaId = currentSceltaId
         self.scelteCollection = scelteCollection
-        self.last_viewed_level = -1 # Rastrexa o último nivel para o que se mostrou a intro
+        self.last_viewed_level = -1 
     
     def getCurrentPlayer(self) -> Character:
         return self.characters[self.currentPlayerId]

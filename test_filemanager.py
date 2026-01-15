@@ -37,7 +37,7 @@ class TestFileManager(unittest.TestCase):
         # Usiamo patch per intercettare la chiamata a open
         with patch('builtins.open', mock_open(read_data=mock_file_content)) as mock_file:
             fm = FileManager()
-            scelteInfo, charactersInfo = fm.loadFile("dummy_path.json")
+            scelteInfo, charactersInfo, levelInfoIntro = fm.loadFile("dummy_path.json")
 
             # Verifichiamo che il file sia stato "aperto" nella modalità corretta
             mock_file.assert_called_once_with("dummy_path.json", 'r', encoding='utf-8')

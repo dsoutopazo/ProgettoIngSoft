@@ -71,7 +71,7 @@ class TestGUIElements(unittest.TestCase):
         # Patchiamo 'view.pygame' per evitare che apra finestre vere o cerchi font/immagini
         self.pygame_patcher = patch('view.pygame')
         self.mock_pygame = self.pygame_patcher.start()
-        
+        self.mock_pygame.mouse.get_pos.return_value = (0, 0)
     def tearDown(self):
         self.pygame_patcher.stop()
 
@@ -84,7 +84,7 @@ class TestGUIElements(unittest.TestCase):
         
         self.mock_pygame.init.assert_called_once()
         self.mock_pygame.display.set_mode.assert_called_once_with((1024, 768))
-        self.mock_pygame.display.set_caption.assert_called_with("BETA")
+        self.mock_pygame.display.set_caption.assert_called_with("The adventures of Lulucia")
 
     def test_text_initialization_and_render(self):
         """
@@ -96,10 +96,11 @@ class TestGUIElements(unittest.TestCase):
         mock_font_obj.render.return_value = mock_rendered_text
         self.mock_pygame.font.SysFont.return_value = mock_font_obj
         
-        txt = Text((0, 0), "Hello")
+        with patch('view.os.path.exists', return_value=False):
+            txt = Text((0, 0), "Hello")
         
         # Verifica init
-        self.mock_pygame.font.SysFont.assert_called_with("Arial", 24)
+        self.mock_pygame.font.SysFont.assert_called_with("Arial", 32, bold=True)
         
         # Verifica render
         dummy_surface = MagicMock()
@@ -157,6 +158,7 @@ class TestGameView(unittest.TestCase):
     def setUp(self):
         self.pygame_patcher = patch('view.pygame')
         self.mock_pygame = self.pygame_patcher.start()
+        self.mock_pygame.mouse.get_pos.return_value = (0, 0)
 
     def tearDown(self):
         self.pygame_patcher.stop()
@@ -169,14 +171,14 @@ class TestGameView(unittest.TestCase):
         self.assertIsInstance(gv.screen, Screen)
         self.assertIsInstance(gv.root, RenderObject)
 
-    def test_linksToSubsystemObjects(self):
+    def test_setSceneObjects(self):
         """
         # Test: Verifica che gli oggetti vengano passati alla root.
         """
         gv = GameView()
         obj1 = MagicMock()
         
-        gv.linksToSubsystemObjects([obj1])
+        gv.setSceneObjects([obj1])
         
         self.assertIn(obj1, gv.root.children)
 
@@ -185,12 +187,13 @@ class TestGameView(unittest.TestCase):
         # Test: Verifica l'intero ciclo di render (fill, render figli, flip).
         """
         gv = GameView()
-        gv.initScreen() # Crea gv.screen.screen che è un mock
+        gv.initScreen() 
+        gv.menu_bg = None # Assicuriamoci che non usi l'immagine per testare il fill
         
         gv.render()
         
         # Verifica che lo schermo venga pulito
-        gv.screen.screen.fill.assert_called_with((30, 30, 30))
+        gv.screen.screen.fill.assert_called_with((20, 20, 20))
         # Verifica flip del buffer
         self.mock_pygame.display.flip.assert_called_once()
 

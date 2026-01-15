@@ -3,6 +3,33 @@
         "FAIL_INSPECTION",
         "FAIL_JUMP",
         "FAIL_TRAPS_TOO_SLOW",
-        "WIN_TO_BE_CONTINUED_KILL"
-    ]
+        "WIN_TO_BE_CONTINUED_KILL",
+        "FAIL_UNARMED"
+    ],
+    "1": {
+        "name": "saveGame1",
+        "node": "5_GOBLIN_DEAD",
+        "turn": 0,
+        "p1_abilities": [
+            "cards",
+            "bow"
+        ],
+        "p2_abilities": [
+            "tree_bridge",
+            "sword"
+        ]
+    },
+    "2": {
+        "name": "daniel",
+        "node": "3_GOBLIN_ENCOUNTER",
+        "turn": 0,
+        "p1_abilities": [
+            "cards",
+            "bow"
+        ],
+        "p2_abilities": [
+            "tree_bridge",
+            "lucky_clover"
+        ]
+    }
 }

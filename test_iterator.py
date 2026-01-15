@@ -12,14 +12,21 @@ class TestScelta(unittest.TestCase):
             nextLeft=[([], "1")],               
             text="Room 0",
             rightText="Go Right",
-            leftText="Go Left"
+            leftText="Go Left",
+            rightObjects=[],
+            leftObjects=[],
+            turn=0,
+            level=1
         )
         self.assertEqual(s.key, "0")
         self.assertIsInstance(s.nextRight, list)
+        self.assertEqual(s.turn, 0)
+        self.assertEqual(s.level, 1)
 
     def test_scelta_equality(self):
-        s1 = Scelta("1", [], [], "t", "r", "l")
-        s2 = Scelta("2", [], [], "t", "r", "l")
+        # Initializing with required fields
+        s1 = Scelta("1", [], [], "t", "r", "l", [], [])
+        s2 = Scelta("2", [], [], "t", "r", "l", [], [])
         self.assertNotEqual(s1, s2)
 
 class TestScelteCollection(unittest.TestCase):
@@ -27,8 +34,8 @@ class TestScelteCollection(unittest.TestCase):
     Test per la classe ScelteCollection.
     """
     def setUp(self):
-        self.s1 = Scelta("1", [], [], "Text1", "R", "L")
-        self.s2 = Scelta("2", [], [], "Text2", "R", "L")
+        self.s1 = Scelta("1", [], [], "Text1", "R", "L", [], [])
+        self.s2 = Scelta("2", [], [], "Text2", "R", "L", [], [])
         data = {'1': self.s1, '2': self.s2}
         self.collection = ScelteCollection(data)
 
@@ -40,14 +47,10 @@ class TestScelteCollection(unittest.TestCase):
         self.assertEqual(result, self.s1)
 
     def test_get_scelta_invalid(self):
-        # Debe lanzar KeyError se a clave non existe
+        # Deve lanciare KeyError se la chiave non esiste
         with self.assertRaises(KeyError):
             self.collection.__getScelta__('999')
 
-    def test_add_scelte(self):
-        s3 = Scelta("3", [], [], "Text3", "R", "L")
-        self.collection.add_scelte({'3': s3})
-        self.assertEqual(self.collection.__getScelta__('3'), s3)
 
 class TestScelteIterator(unittest.TestCase):
     """
@@ -59,14 +62,16 @@ class TestScelteIterator(unittest.TestCase):
         # "0" (Start) -> Sinistra (libera) -> "1"
         # "0" (Start) -> Destra (richiede 'chiave') -> "2"
         
-        self.scelta_1 = Scelta("1", [], [], "Stanza 1", "-", "-")
-        self.scelta_2 = Scelta("2", [], [], "Stanza 2", "-", "-")
+        self.scelta_1 = Scelta("1", [], [], "Stanza 1", "-", "-", [], [])
+        self.scelta_2 = Scelta("2", [], [], "Stanza 2", "-", "-", [], [])
         
         self.scelta_0 = Scelta(
-            key="0", # A clave inicial OBRIGATORIA
+            key="0", # La chiave iniziale OBBLIGATORIA
             nextLeft=[([], "1")],                 
             nextRight=[(["chiave"], "2")],  
-            text="Inizio", rightText="Vai a 2", leftText="Vai a 1"
+            text="Inizio", rightText="Vai a 2", leftText="Vai a 1",
+            rightObjects=[],
+            leftObjects=[]
         )
 
         data = {
@@ -77,27 +82,27 @@ class TestScelteIterator(unittest.TestCase):
         
         self.collection = ScelteCollection(data)
         self.iterator = ScelteIterator(self.collection)
-        # O iteratore iniciarase internamente en "0", o cal é correcto agora.
+        # L'iteratore inizierà internamente in "0", il che è corretto ora.
 
     def test_has_more(self):
         self.assertTrue(self.iterator.hasMore())
 
     def test_get_left_no_requirements(self):
         inventory = []
-        # Estamos en "0", imos á esquerda -> "1"
+        # Siamo in "0", andiamo a sinistra -> "1"
         next_scelta = self.iterator.getLeft(inventory)
         self.assertEqual(next_scelta.key, "1")
 
     def test_get_right_missing_requirement(self):
-        inventory = ["obxecto_incorrecto"]
-        # Estamos en "0" (o iterator mantén o estado), tentamos ir á dereita sen chave
-        # O teu código debe lanzar ValueError
+        inventory = ["oggetto_errato"]
+        # Siamo in "0" (l'iteratore mantiene lo stato), tentiamo di andare a destra senza chiave
+        # Il tuo codice deve lanciare ValueError
         with self.assertRaises(ValueError):
              self.iterator.getRight(inventory)
 
     def test_get_right_met_requirement(self):
         inventory = ["chiave"]
-        # Reset do iterador para asegurar que estamos en "0"
+        # Reset dell'iteratore per assicurarsi che siamo in "0"
         self.iterator._position = "0"
         
         next_scelta = self.iterator.getRight(inventory)

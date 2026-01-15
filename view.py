@@ -2,16 +2,72 @@ import os
 import math
 import pygame
 
-# Mixer: se fallisce (driver/audio) non deve crashare
+# Mixer init
 try:
     pygame.mixer.init()
 except Exception as e:
     print("[Audio] mixer init failed:", e)
 
-# Volume globale effetti (hover/click). Lo modifica il controller.
-SFX_VOLUME = 1.0
+# =====================
+# AUDIO MANAGER
+# =====================
 
-# ---- Font Settings
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+class AudioManager(metaclass=SingletonMeta):
+    def __init__(self):
+        self.volume_levels = [("Mute", 0.0), ("Low", 0.25), ("Medium", 0.5), ("High", 1.0)]
+        self.volume_index = 3
+        self.menu_music_base = 0.25
+        self.menu_music_playing = False
+        self.sfx_volume = 1.0
+        # Apply volume
+        try:
+            pygame.mixer.music.set_volume(self.volume_levels[self.volume_index][1] * self.menu_music_base)
+        except Exception:
+            pass
+
+    def cycle_volume(self):
+        self.volume_index = (self.volume_index + 1) % len(self.volume_levels)
+        self.sfx_volume = self.volume_levels[self.volume_index][1]
+        try:
+            pygame.mixer.music.set_volume(self.sfx_volume * self.menu_music_base)
+        except Exception:
+            pass
+
+    def play_menu_music(self):
+        if self.menu_music_playing:
+            return
+        try:
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "sounds", "menu_music.mp3")
+            pygame.mixer.music.load(path)
+            pygame.mixer.music.set_volume(self.volume_levels[self.volume_index][1] * self.menu_music_base)
+            pygame.mixer.music.play(-1)
+            self.menu_music_playing = True
+        except Exception as e:
+            print("[Music] Menu music failed:", e)
+
+    def fadeout_music(self, ms=1200):
+        if not self.menu_music_playing:
+            return
+        try:
+            pygame.mixer.music.fadeout(ms)
+        except Exception:
+            try: pygame.mixer.music.stop()
+            except Exception: pass
+        self.menu_music_playing = False
+
+def get_sfx_volume():
+    return AudioManager().sfx_volume
+
+# ---- Impostazioni Font
 FONT_PATH_TITLE = "assets/fonts/OwreKynge.ttf"
 FONT_PATH_BODY  = "assets/fonts/Alkhemikal.ttf" 
 
@@ -87,7 +143,7 @@ class Text(RenderObject):
     def render(self, surface):
         text_surface = self.font.render(self.content, True, self.color)
         
-        # Centrado automático se X é -1
+        # Centramento automatico se X è -1
         draw_x = self.position[0]
         if draw_x == -1:
             draw_x = (surface.get_width() - text_surface.get_width()) // 2
@@ -99,7 +155,7 @@ class Text(RenderObject):
 
 
 # =====================
-# MULTILINE TEXT (WRAP)
+# MULTILINE TEXT
 # =====================
 class MultiLineText(RenderObject):
     def __init__(self, position, content, max_width, color=(255, 255, 255), font_size=FONT_SIZE_NORMAL):
@@ -120,7 +176,7 @@ class MultiLineText(RenderObject):
         current_line = []
 
         for word in words:
-            # Se a palabra ten saltos de liña internos
+            # Se la parola ha salti di linea interni
             sub_words = word.split('\n')
             for i, sw in enumerate(sub_words):
                 if i > 0:
@@ -171,7 +227,7 @@ class Image(RenderObject):
 
 
 # =====================
-# BUTTON (ICONA + HOVER + CLICK + GLOW ANIMATO) + ACTION_ID
+# BUTTON 
 # =====================
 class Button(RenderObject):
     def __init__(
@@ -202,7 +258,6 @@ class Button(RenderObject):
         self.color = color
         self.hover_color = hover_color
 
-        # ---- Icona (path robusto: relativo al file view.py)
         self.icon = None
         self.icon_size = icon_size
         if icon_path:
@@ -216,7 +271,6 @@ class Button(RenderObject):
             except Exception as e:
                 print(f"[Button] Icon load failed ({icon_path}): {e}")
 
-        # ---- Suoni
         self.hover_sound = None
         self.click_sound = None
 
@@ -230,11 +284,9 @@ class Button(RenderObject):
         except Exception as e:
             print(f"[Button] Click sound load failed: {e}")
 
-        # Prevent hover sound on first frame if mouse is already over the button
         self._hovered_last_frame = self._is_hovered()
 
-        # ---- Glow animato
-        self.glow_speed = 0.008  # prova 0.006–0.012
+        self.glow_speed = 0.008
 
     def _is_hovered(self):
         mx, my = pygame.mouse.get_pos()
@@ -245,16 +297,14 @@ class Button(RenderObject):
             return
         hovered = self._is_hovered()
 
-        # 🔊 hover sound (solo all’entrata)
         if hovered and not self._hovered_last_frame:
             if self.hover_sound:
                 ch = self.hover_sound.play()
                 if ch:
-                    ch.set_volume(SFX_VOLUME)
+                    ch.set_volume(get_sfx_volume())
 
         self._hovered_last_frame = hovered
 
-        # ✨ glow animato
         if hovered:
             t = pygame.time.get_ticks()
             pulse01 = (math.sin(t * self.glow_speed) + 1.0) / 2.0
@@ -273,7 +323,6 @@ class Button(RenderObject):
                     border_radius=self.radius,
                 )
 
-        # ---- Bottone
         bg = self.color if not hovered else self.hover_color
         border = (255, 255, 255)
         shadow = (0, 0, 0)
@@ -286,12 +335,9 @@ class Button(RenderObject):
         pygame.draw.rect(surface, bg, self.rect, border_radius=self.radius)
         pygame.draw.rect(surface, border, self.rect, width=2, border_radius=self.radius)
 
-        # ---- Contenuto (icona + testo centrati)
         gap = 10
         padding = 10
         available_w = self.rect.w - (padding * 2) - (self.icon_size + gap if self.icon else 0)
-        
-        # Wrap text if needed
         words = self.text.split(' ')
         lines = []
         current_line = []
@@ -305,12 +351,10 @@ class Button(RenderObject):
                 current_line = [word]
         lines.append(' '.join(current_line))
         
-        # Calculate total height of text
         line_surfaces = [self.font.render(l, True, (255, 255, 255)) for l in lines]
         total_text_h = sum(s.get_height() for s in line_surfaces) + (len(lines)-1) * 2
         
         icon_w = self.icon_size if self.icon else 0
-        # For layout calculation, we use the width of the widest line
         max_line_w = max(s.get_width() for s in line_surfaces) if line_surfaces else 0
         content_w = icon_w + (gap if self.icon and self.text else 0) + max_line_w
 
@@ -325,7 +369,6 @@ class Button(RenderObject):
         if self.text:
             current_y = center_y - total_text_h // 2
             for surf in line_surfaces:
-                # Center line relative to the text block if needed, but here we just blit
                 surface.blit(surf, (start_x, current_y))
                 current_y += surf.get_height() + 2
 
@@ -336,9 +379,8 @@ class Button(RenderObject):
             if self.click_sound:
                 ch = self.click_sound.play()
                 if ch:
-                    ch.set_volume(SFX_VOLUME)
+                    ch.set_volume(get_sfx_volume())
 
-            # ✅ se c'è action_id, ritorna sempre quello (stabile)
             if self.action_id:
                 return [f"ACTION:{self.action_id}"]
 
@@ -347,7 +389,7 @@ class Button(RenderObject):
 
 
 # =====================
-# GAME VIEW (SFONDO MENU + LOAD)
+# GAME VIEW
 # =====================
 class GameView:
     def __init__(self):
@@ -377,22 +419,22 @@ class GameView:
         self.current_scene = scene_name
         self.root.children = []
 
-    def linksToSubsystemObjects(self, objects):
+    def setSceneObjects(self, objects):
         self.root.children = []
         self.root.addChildren(objects)
 
     def render(self):
-        # Mostramos o fondo do menú nestas escenas para manter a estética
+        # Mostriamo lo sfondo del menu in queste scene per mantenere l'estetica
         menu_scenes = ("MENU", "LOAD", "SAVE", "NAMING", "WARNING", "EXIT_CONFIRM", "INFO", "ENDINGS", "LEVEL_INTRO")
         if self.current_scene in menu_scenes and self.menu_bg:
             self.screen.screen.blit(self.menu_bg, (0, 0))
 
             overlay = pygame.Surface((self.screen.width, self.screen.height))
-            overlay.set_alpha(100) # Un pouco máis escuro para lexibilidade
+            overlay.set_alpha(100) # Un po' più scuro per la leggibilità
             overlay.fill((0, 0, 0))
             self.screen.screen.blit(overlay, (0, 0))
         else:
-            self.screen.screen.fill((20, 20, 20)) # Fondo escuro para o xogo
+            self.screen.screen.fill((20, 20, 20)) # Sfondo scuro per il gioco
 
         self.root.render(self.screen.screen)
         pygame.display.flip()

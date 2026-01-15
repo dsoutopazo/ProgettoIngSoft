@@ -19,54 +19,25 @@ class MainController:
         self.temp_name = ""
         self.gallery_page = 0
         self.quit_after_save = False
-
-        # ===== MUSICA MENU (MENU + LOAD)
-        self.menu_music_playing = False
-
-        # ===== VOLUME (4 livelli)
-        self.volume_levels = [
-            ("Mute", 0.0),
-            ("Low", 0.25),
-            ("Medium", 0.5),
-            ("High", 1.0),
-        ]
-        self.volume_index = 3
-        self.menu_music_base = 0.25  
-        self.apply_volume()
+        self.audio = AudioManager()
 
     # =====================
-    # PATH MUSICA
+    # MUSICA
     # =====================
-    def _music_path(self, filename):
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(base_dir, "assets", "sounds", filename)
+    def play_menu_music(self):
+        self.audio.play_menu_music()
 
-    # =====================
-    # VOLUME
-    # =====================
-    def current_volume_label(self):
-        return self.volume_levels[self.volume_index][0]
-
-    def current_master_volume(self):
-        return self.volume_levels[self.volume_index][1]
-
-    def apply_volume(self):
-        master = self.current_master_volume()
-        view.SFX_VOLUME = master
-        try:
-            pygame.mixer.music.set_volume(master * self.menu_music_base)
-        except Exception:
-            pass
+    def fadeout_menu_music(self, ms=1200):
+        self.audio.fadeout_music(ms)
 
     def cycle_volume(self):
-        self.volume_index = (self.volume_index + 1) % len(self.volume_levels)
-        self.apply_volume()
+        self.audio.cycle_volume()
         self.refresh_scene()
 
     def make_volume_button(self, position=(250, 440), size=(300, 60)):
         return Button(
             position, size,
-            f"Volume: {self.current_volume_label()}",
+            f"Volume: {self.audio.volume_levels[self.audio.volume_index][0]}",
             icon_path="assets/icons/volume.png",
             icon_size=28,
             action_id="VOLUME"
@@ -85,33 +56,7 @@ class MainController:
             self.showSaveSlots()
         elif self.view.current_scene == "INFO":
             self.showInfoMenu()
-
-    # =====================
-    # MUSICA
-    # =====================
-    def play_menu_music(self):
-        if self.menu_music_playing:
-            return
-        try:
-            pygame.mixer.music.load(self._music_path("menu_music.mp3"))
-            self.apply_volume()
-            pygame.mixer.music.play(-1)
-            self.menu_music_playing = True
-        except Exception as e:
-            print("[Music] Menu music failed:", e)
-
-    def fadeout_menu_music(self, ms=1200):
-        if not self.menu_music_playing:
-            return
-        try:
-            pygame.mixer.music.fadeout(ms)
-        except Exception:
-            try:
-                pygame.mixer.music.stop()
-            except Exception:
-                pass
-        self.menu_music_playing = False
-
+    
     # =====================
     # FILE DI GIOCO
     # =====================
@@ -172,7 +117,7 @@ class MainController:
         btn_vol = self.make_volume_button(position=(250, 380))
         btn_end = Button((250, 460), (300, 60), "Endings Gallery", action_id="INFO_ENDINGS")
 
-        self.view.linksToSubsystemObjects([title, btn_new, btn_load, btn_vol, btn_end])
+        self.view.setSceneObjects([title, btn_new, btn_load, btn_vol, btn_end])
 
     def showLoadMenu(self):
         prev_scene = self.view.current_scene
@@ -183,7 +128,6 @@ class MainController:
         title = Text((-1, 50), "Load Game", font_size=FONT_SIZE_TITLE, is_title=False)
         objects = [title]
         
-        # Back arrow top-left
         back_action = "GO_MAIN_MENU" if prev_scene == "MENU" else "INFO_MENU"
         back_arrow = Button((20, 20), (45, 45), text="", icon_path="assets/icons/back.png", icon_size=35, action_id=back_action)
         objects.append(back_arrow)
@@ -196,7 +140,53 @@ class MainController:
             btn = Button(positions[i-1], (300, 60), f"Slot {i}: {name}", action_id=f"LOAD_SLOT_{i}")
             objects.append(btn)
             
-        self.view.linksToSubsystemObjects(objects)
+        self.view.setSceneObjects(objects)
+
+    def _get_players_list(self):
+        for attr in ("characters", "players", "characterList", "charactersList"):
+            if hasattr(self.session, attr):
+                val = getattr(self.session, attr)
+                if isinstance(val, list):
+                    return val
+        return None
+
+    def showInfoMenu(self):
+        self.view.setScene("INFO")
+
+        players = self._get_players_list()
+        p1_name, p1_abilities = "P1", "None"
+        p2_name, p2_abilities = "P2", "None"
+
+        if isinstance(players, list) and len(players) >= 1:
+            p1 = players[0]
+            p1_name = getattr(p1, "nickname", "P1")
+            p1_abs_raw = getattr(p1, "abilities", [])
+            p1_abilities = ", ".join(item.replace("_", " ") for item in p1_abs_raw) if p1_abs_raw else "None"
+            
+            if len(players) >= 2:
+                p2 = players[1]
+                p2_name = getattr(p2, "nickname", "P2")
+                p2_abs_raw = getattr(p2, "abilities", [])
+                p2_abilities = ", ".join(item.replace("_", " ") for item in p2_abs_raw) if p2_abs_raw else "None"
+
+        title = Text((-1, 40), "INFO MENU", (255, 255, 255), font_size=FONT_SIZE_TITLE, is_title=False)
+
+        back_arrow = Button((20, 20), (45, 45), text="", icon_path="assets/icons/back.png", icon_size=35, action_id="INFO_BACK")
+
+        p1_stats = MultiLineText((-1, 110), f"{p1_name}: {p1_abilities}", 600, (255, 255, 255), font_size=FONT_SIZE_NORMAL)
+        p2_stats = MultiLineText((-1, 150), f"{p2_name}: {p2_abilities}", 600, (255, 255, 255), font_size=FONT_SIZE_NORMAL)
+
+        # Buttons
+        btn_endings = Button((250, 220), (300, 50), "Endings", action_id="INFO_ENDINGS")
+        btn_save = Button((250, 280), (300, 50), "Save game", action_id="INFO_SAVE")
+        btn_load = Button((250, 340), (300, 50), "Load game", action_id="INFO_LOAD")
+        btn_vol  = self.make_volume_button(position=(250, 400), size=(300, 50))
+        btn_main_menu = Button((250, 460), (300, 50), "Main Menu", action_id="GO_MAIN_MENU")
+
+        self.view.setSceneObjects([
+            title, back_arrow, p1_stats, p2_stats, 
+            btn_endings, btn_save, btn_load, btn_vol, btn_main_menu
+        ])
 
     def showSaveSlots(self):
         prev_scene = self.view.current_scene
@@ -206,7 +196,6 @@ class MainController:
         title = Text((-1, 50), "Select a Save Slot", font_size=FONT_SIZE_TITLE, is_title=False)
         objects = [title]
 
-        # Back arrow top-left
         back_action = "GO_MAIN_MENU" if prev_scene == "MENU" else "INFO_MENU"
         back_arrow = Button((20, 20), (45, 45), text="", icon_path="assets/icons/back.png", icon_size=35, action_id=back_action)
         objects.append(back_arrow)
@@ -219,7 +208,7 @@ class MainController:
             btn = Button(positions[i-1], (300, 60), f"Slot {i}: {name}", action_id=f"SAVE_SLOT_{i}")
             objects.append(btn)
             
-        self.view.linksToSubsystemObjects(objects)
+        self.view.setSceneObjects(objects)
 
     def showNamingScreen(self):
         self.view.setScene("NAMING")
@@ -227,7 +216,7 @@ class MainController:
         name_display = Text((-1, 200), f"> {self.temp_name} <", (0, 255, 0))
         hint = Text((-1, 300), "Use letters/numbers and press ENTER to confirm", font_size=FONT_SIZE_SMALL)
         btn_back = Button((250, 400), (300, 60), "Cancel", action_id="SAVE_BACK")
-        self.view.linksToSubsystemObjects([title, name_display, hint, btn_back])
+        self.view.setSceneObjects([title, name_display, hint, btn_back])
 
     def showOverwriteWarning(self, slot):
         self.view.setScene("WARNING")
@@ -242,9 +231,9 @@ class MainController:
         btn_yes = Button((100, 350), (280, 60), "Yes, Choose Slot", action_id="CONFIRM_OVERWRITE")
         btn_no = Button((420, 350), (280, 60), "No, Cancel", action_id="SAVE_BACK")
         
-        self.view.linksToSubsystemObjects([title, msg, msg2, msg3, btn_yes, btn_no])
+        self.view.setSceneObjects([title, msg, msg2, msg3, btn_yes, btn_no])
 
-    def perform_save(self):
+    def saveGame(self):
         p1 = self.session.characters[0]
         p2 = self.session.characters[1]
         
@@ -266,13 +255,13 @@ class MainController:
             self.view.setScene("GAME")
             self.updateView()
 
-    def perform_load(self, slot):
+    def loadGame(self, slot):
         slot_key = str(slot)
         if slot_key not in self.save_data:
             return
             
         data = self.save_data[slot_key]
-        self.readGameFile(show_intro=False) # Recarga historia sin mostrar intro
+        self.readGameFile(show_intro=False)
         
         self.session.currentSceltaId = data["node"]
         scelta = self.session.scelteCollection.__getScelta__(data["node"])
@@ -281,7 +270,6 @@ class MainController:
         self.session.characters[0].abilities = data["p1_abilities"]
         self.session.characters[1].abilities = data["p2_abilities"]
         
-        # Sincronizar iterador
         self.iterator._position = data["node"]
         
         self.is_saved = True
@@ -290,7 +278,6 @@ class MainController:
 
     def showEndingsMenu(self):
         prev_scene = self.view.current_scene
-        # Se xa estabamos en ENDINGS, non reiniciamos prev_scene para non perder o Back correcto
         if self.view.current_scene != "ENDINGS":
             self.last_scene_before_gallery = prev_scene
             self.gallery_page = 0
@@ -305,12 +292,10 @@ class MainController:
         title = Text((-1, 40), "ENDINGS GALLERY", font_size=FONT_SIZE_TITLE, is_title=False)
         objects = [title]
 
-        # Back arrow top-left
         back_action = "GO_MAIN_MENU" if prev_scene == "MENU" else "INFO_MENU"
         back_arrow = Button((20, 20), (45, 45), text="", icon_path="assets/icons/back.png", icon_size=35, action_id=back_action)
         objects.append(back_arrow)
         
-        # Aplanamos a lista de finais por niveis para paxinar facilmente
         all_items = []
         endings_by_level = {}
         for key, node in self.session.scelteCollection._collection.items():
@@ -324,7 +309,7 @@ class MainController:
             for end_node in endings_by_level[lvl]:
                 all_items.append({"type": "ENDING", "val": end_node})
 
-        # Paxinación: 8 elementos por páxina
+        # Paginazione
         per_page = 8
         total_pages = math.ceil(len(all_items) / per_page)
         start_idx = self.gallery_page * per_page
@@ -348,7 +333,6 @@ class MainController:
                 objects.append(obj)
             y_offset += 42
 
-        # Botóns de navegación
         if self.gallery_page > 0:
             objects.append(Button((50, 520), (120, 50), "Prev", action_id="GALLERY_PREV"))
         
@@ -358,21 +342,19 @@ class MainController:
         page_info = Text((-1, 575), f"Page {self.gallery_page + 1} of {total_pages}", font_size=FONT_SIZE_SMALL)
         objects.append(page_info)
 
-        self.view.linksToSubsystemObjects(objects)
+        self.view.setSceneObjects(objects)
 
     def showLevelIntro(self, level):
         self.view.setScene("LEVEL_INTRO")
         intro_text = self.session.scelteCollection.level_introductions.get(str(level), "Your journey continues...")
         
-        # Modal effect: A large colored box as background
         bg_modal = Button((100, 80), (600, 420), text="", color=(30, 30, 30), hover_color=(30, 30, 30))
         
         title = Text((-1, 150), f"LEVEL {level}", font_size=FONT_SIZE_TITLE, is_title=False)
         desc = MultiLineText((-1, 230), intro_text, 500, font_size=FONT_SIZE_NORMAL)
         btn_continue = Button((250, 430), (300, 60), "Continue", action_id="LEVEL_CONTINUE")
         
-        # O fondo bg_modal debe ser o primeiro para que se debuxe detrás
-        self.view.linksToSubsystemObjects([bg_modal, title, desc, btn_continue])
+        self.view.setSceneObjects([bg_modal, title, desc, btn_continue])
         self.session.last_viewed_level = level
 
     def showExitConfirm(self):
@@ -384,61 +366,8 @@ class MainController:
         btn_save_quit = Button((250, 340), (300, 60), "Save and quit", action_id="EXIT_SAVE_QUIT")
         btn_back = Button((250, 420), (300, 60), "Back", action_id="EXIT_BACK")
 
-        self.view.linksToSubsystemObjects([title, btn_yes, btn_save_quit, btn_back])
+        self.view.setSceneObjects([title, btn_yes, btn_save_quit, btn_back])
 
-    # =====================
-    # INFO MENU (P1 + P2) + bottone in alto a destra
-    # =====================
-    def _get_players_list(self):
-        # prova a trovare la lista dei personaggi nella session
-        for attr in ("characters", "players", "characterList", "charactersList"):
-            if hasattr(self.session, attr):
-                val = getattr(self.session, attr)
-                if isinstance(val, list):
-                    return val
-        # fallback: prova dentro self.session.characters se è un dict ecc.
-        return None
-
-    def showInfoMenu(self):
-        self.view.setScene("INFO")
-
-        # Players logic
-        players = self._get_players_list()
-        p1_name, p1_abilities = "P1", "None"
-        p2_name, p2_abilities = "P2", "None"
-
-        if isinstance(players, list) and len(players) >= 1:
-            p1 = players[0]
-            p1_name = getattr(p1, "nickname", "P1")
-            p1_abs_raw = getattr(p1, "abilities", [])
-            p1_abilities = ", ".join(item.replace("_", " ") for item in p1_abs_raw) if p1_abs_raw else "None"
-            
-            if len(players) >= 2:
-                p2 = players[1]
-                p2_name = getattr(p2, "nickname", "P2")
-                p2_abs_raw = getattr(p2, "abilities", [])
-                p2_abilities = ", ".join(item.replace("_", " ") for item in p2_abs_raw) if p2_abs_raw else "None"
-
-        title = Text((-1, 40), "INFO MENU", (255, 255, 255), font_size=FONT_SIZE_TITLE, is_title=False)
-
-        # Back arrow top-left
-        back_arrow = Button((20, 20), (45, 45), text="", icon_path="assets/icons/back.png", icon_size=35, action_id="INFO_BACK")
-
-        # Player stats: {Name}: {abilities}
-        p1_stats = MultiLineText((-1, 110), f"{p1_name}: {p1_abilities}", 600, (255, 255, 255), font_size=FONT_SIZE_NORMAL)
-        p2_stats = MultiLineText((-1, 150), f"{p2_name}: {p2_abilities}", 600, (255, 255, 255), font_size=FONT_SIZE_NORMAL)
-
-        # Buttons
-        btn_endings = Button((250, 220), (300, 50), "Endings", action_id="INFO_ENDINGS")
-        btn_save = Button((250, 280), (300, 50), "Save game", action_id="INFO_SAVE")
-        btn_load = Button((250, 340), (300, 50), "Load game", action_id="INFO_LOAD")
-        btn_vol  = self.make_volume_button(position=(250, 400), size=(300, 50))
-        btn_main_menu = Button((250, 460), (300, 50), "Main Menu", action_id="GO_MAIN_MENU")
-
-        self.view.linksToSubsystemObjects([
-            title, back_arrow, p1_stats, p2_stats, 
-            btn_endings, btn_save, btn_load, btn_vol, btn_main_menu
-        ])
 
     # =====================
     # GIOCO
@@ -454,7 +383,6 @@ class MainController:
             Text((50, 20), f"Level: {scelta.level}", (200, 200, 0), font_size=FONT_SIZE_BUTTON),
             MultiLineText((50, 80), scelta.text, 700, font_size=FONT_SIZE_NORMAL),
             
-            # Quenda e habilidades na parte inferior esquerda
             Text((150, 20), f"Turn: {player.nickname}", (200, 200, 0), font_size=FONT_SIZE_BUTTON),
             MultiLineText((350, 20), f"Abilities: {abilities_str}", 700, (200, 200, 0), font_size=FONT_SIZE_BUTTON),
         ]
@@ -466,19 +394,16 @@ class MainController:
                 img_obj = Image((pos_x, pos_y), player.image_path)
                 objects.append(img_obj)
             except Exception as e:
-                print(f"[View] Erro ao cargar imaxe de personaxe {player.id}: {e}")
+                print(f"[View] Errore nel caricamento dell'immagine del personaggio {player.id}: {e}")
 
         if scelta.leftText:
             objects.append(Button((50, 420), (320, 80), scelta.leftText, action_id="CHOICE_LEFT"))
         if scelta.rightText:
-            # Substituímos "Exit" ou "Quit" por "Main Menu" se aparece nunha escolla
             btn_text = scelta.rightText
             if btn_text.lower() in ("exit", "quit"):
                 btn_text = "Main Menu"
             objects.append(Button((430, 420), (320, 80), btn_text, action_id="CHOICE_RIGHT"))
 
-        # ✅ Bottone INFO (solo icona) in alto a destra
-        # 800 - 36 - 10 = 754
         objects.append(
             Button(
                 (754, 10), (36, 36),
@@ -489,7 +414,7 @@ class MainController:
             )
         )
 
-        self.view.linksToSubsystemObjects(objects)
+        self.view.setSceneObjects(objects)
 
     def nextScelta(self, direction):
         self.iterator._position = self.session.currentSceltaId
@@ -510,7 +435,7 @@ class MainController:
             return
 
         # Check for new level (or restart of Level 1)
-        # Se o nivel cambia ou se volve ao nivel 1 vindo dun nivel superior (reinicio)
+        # Se il livello cambia o se si torna al livello 1 venendo da un livello superiore (riavvio)
         if next_s.level > self.session.last_viewed_level or (next_s.level == 1 and self.session.last_viewed_level > 1):
             self.session.updateCurrentScelta(next_s.key)
             self.session.switchTurn(forced_turn=next_s.turn)
@@ -519,11 +444,11 @@ class MainController:
             return
 
         self.session.updateCurrentScelta(next_s.key)
-        # Aplicamos a quenda indicada polo novo nodo
+        # Applichiamo il turno indicato dal nuovo nodo
         self.session.switchTurn(forced_turn=next_s.turn)
-        self.is_saved = False # Marcamos como non gardado ao tomar unha decisión
+        self.is_saved = False # Segniamo come non salvato al momento di prendere una decisione
         
-        # Se é un final, gardámolo na lista global de desbloqueados
+        # Se è un finale, lo salviamo nella lista globale dei sbloccati
         if next_s.is_end:
             self.save_data = self.fileManager.loadSaves()
             if "unlocked_endings" not in self.save_data:
@@ -540,23 +465,20 @@ class MainController:
     def handleEvents(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                # Se estamos no xogo e hai cambios sen gardar, preguntamos
                 if not self.is_saved and self.view.current_scene in ("GAME", "INFO"):
                     self.showExitConfirm()
                 else:
                     self.running = False
 
-            # tasto I per aprire/chiudere info
             if event.type == pygame.KEYDOWN:
                 if self.view.current_scene == "NAMING":
                     if event.key == pygame.K_RETURN:
                         if self.temp_name.strip():
-                            self.perform_save()
+                            self.saveGame()
                     elif event.key == pygame.K_BACKSPACE:
                         self.temp_name = self.temp_name[:-1]
                         self.showNamingScreen()
                     else:
-                        # Limitar nome a 15 caracteres
                         if len(self.temp_name) < 15 and event.unicode.isalnum() or event.unicode == ' ':
                             self.temp_name += event.unicode
                             self.showNamingScreen()
@@ -571,7 +493,6 @@ class MainController:
                 clicks = self.view.checkClick(event.pos)
 
                 for msg in clicks:
-                    # ✅ ACTIONS
                     if msg.startswith("ACTION:"):
                         action = msg.split("ACTION:")[1]
 
@@ -645,7 +566,7 @@ class MainController:
 
                         if action.startswith("LOAD_SLOT_"):
                             slot = int(action.split("_")[-1])
-                            self.perform_load(slot)
+                            self.loadGame(slot)
                             continue
 
                         if action == "LEVEL_CONTINUE":
@@ -679,11 +600,11 @@ class MainController:
                             self.updateView()
                             continue
 
-                    # ✅ Logica classica per MENU/LOAD/GAME (testo)
+                    # Logica classica per MENU/LOAD/GAME (testo)
                     if self.view.current_scene == "MENU":
                         if "New Game" in msg:
                             self.readGameFile()
-                            self.is_saved = True # Nova partida empeza como "gardada" (sen cambios)
+                            self.is_saved = True # La nuova partita inizia come "salvata" (senza modifiche)
                             self.view.setScene("GAME")
                             self.updateView()
 
@@ -700,7 +621,7 @@ class MainController:
                             self.showMainMenu()
 
                     elif self.view.current_scene == "GAME":
-                        pass # Xestionado por ACTION:CHOICE_LEFT/RIGHT arriba
+                        pass # Gestito da ACTION:CHOICE_LEFT/RIGHT sopra
 
     # =====================
     # LOOP
